@@ -162,7 +162,7 @@ data segment
   cadenaEsc db 3 DUP('$')
   
   ;Almacena la respuesta del usuario sobre comenzar una nueva partida
-  NPartida db ?
+  NPartida db 0
  
 data ends
    
@@ -924,13 +924,72 @@ code segment
 ;********************************* PRINCIPAL ***********************************   
 
 start:
+    ;Inicializacion de los segmentos de datos y extra
     mov ax, data
     mov ds, ax
     mov es, ax 
-
-
-    mov ah, 4ch
-    int 21h
+                                        
+    recargarJuego:                      ;Al inicio de cada partida se comprueba las condiciones de recarga de partida indicadas por el usuario
+        or NPartida, 0
+        jz nuevaPartida                 ;Primera vez que se ejecuta al programa                  
+         
+        call ResetVariables             ;Se ha elegido volver a jugar una nueva partida, por lo que hay que reinicializar las variables. El PROC InicializarEntorno determinara el tablero con el que jugar
+        
+    nuevaPartida:
+        call InicializarEntorno         ;Inicializa el entorno grafico y pide al usuario el tablero a cargar. Se ejecuta siempre que se inicie una nueva partida
+    
+    bLogicaJuego:                       ;Bucle que maneja la logica del juego en cada iteracion
+        call EsperarClic                
+        call PosicionRatonValida        ;Evalua la posicion del puntero del raton
+        
+        test botones, 2                 ;Comprueba el boton pulsado
+        jz clicIzq                   
+        
+        ;Codigo para eventos de ClicDerecho
+        test al, al
+        jz sgte                         ;Comprueba la validez del clic
+        
+        ;Clic valido
+        call PosibleBloqueo  
+        
+        ;Clic invalido
+        sgte:
+            jmp sgteLogicaJuego
+                                                         
+    ;Codigo para eventos de ClicIzquierdo    
+    clicIzq:
+        test al, al                     ;Comprueba la validez de la posicion del puntero del raton
+        jz posibleSalida              
+        
+        ;El clic es valido                   
+        call DestaparCasilla    
+        jmp sgteLogicaJuego              
+        
+        ;El clic NO es valido
+        posibleSalida: 
+            or cRaton, 0                ;Comprueba la coordenada X. Si es la esquina superior izquierda (cruz 'X') es 0
+            jnz sgteLogicaJuego
+            
+            or fRaton, 0                ;Comrpueba que ademas la coordenada Y tambien sea 0 para determinar que se ha pulsado en la cruz
+            jnz sgteLogicaJuego
+            
+            mov fin, 1
+                                        
+     sgteLogicaJuego:                   ;Manejador de finalizacion/iteracion de la partida
+        or fin, 0                       ;Si fin=0 se pasa al siguiente 'tick'
+        jz bLogicaJuego
+        
+        ;Se ha terminado la partida
+        call CompruebaFinPartidaGanada  ;Actualiza la bandera 'fin' si el jugador ha ganado
+        call ContinuarOnoJuego          ;Comprueba las condiciones de fin y muestra los mensajes correspondientes                                                    
+        
+        or NPartida, 0                  ;Maneja la finalizacion del programa. Si no se termina, se recarga el juego
+        jne recargarJuego               
+        
+     ;Fin del programa
+     finJuego:
+        mov ah, 4ch
+        int 21h
 
 code ends
 
