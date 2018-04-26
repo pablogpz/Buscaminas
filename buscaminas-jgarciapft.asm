@@ -68,14 +68,13 @@ data segment
   ;Almacenara la posicion (0...63) de las 10 minas cuya posicion calculamos aleatoreamente
   vectorMinas db 10 dup(0)
   
-  
   ;Mensaje para indicar al usuario que puede jugar haciendo clic con el raton
   EsperaClic db "Esperando clic de raton$"    
   
   ;Mensaje para borrar/sobreescribir el mensaje de "Esperando clic de raton" y el numero de casillas bloqueadas
-  CadBorrar db "                       $" 
+  CadBorrar db "                        $" 
     
-  ;Mensaje que precede al numero de casillas que el usuario a bloqueado
+  ;Mensaje que precede al numero de casillas que el usuario ha bloqueado
   mensajeMinas db "Bloqueadas:$" 
   
   ;Mensaje que precede al numero de minas bloqueadas
@@ -383,6 +382,7 @@ code segment
     and bx,3
     jz bucleEPulsar ;Si no se pulsa ningun boton se queda en bucle
     
+    ;@PREGUNTA: Que es el 'ajuste modo texto'
     shr dx, 3  ;Ajuste modo texto
     shr cx, 3
     mov dh, cl
@@ -509,7 +509,7 @@ code segment
     pop si
     pop cx
     ret
-  InicializaTablerodbG ENDP
+  InicializaTableroDBG ENDP
 
   
   ;F: Borra la pantalla e imprime las cadenas de la pantalla de inicio de cada partida 
@@ -550,7 +550,7 @@ code segment
     
    inic_TabdbG:   
    
-    call InicializaTablerodbG 
+    call InicializaTableroDBG 
    
    fin_inic_tab: 
     call BorrarPantalla
@@ -577,7 +577,8 @@ code segment
 
     lea dx, CadBorrar
     call Imprimir
-
+       
+    ;@PREGUNTA: Es redundante la asignacion de 'fila' y 'colum'?   
     mov fila, YBLOQ
     mov colum, XBLOQ + 13
     call ColocarCursor
@@ -649,7 +650,6 @@ code segment
     call imprimir
 
 
-    
     ;imprime los mensajes de opciones al terminar partida
     mov fila, YMENSAJES3  
     mov colum, XMENSAJES
@@ -684,7 +684,7 @@ code segment
     mov NPartida, 1
     jmp finContinuarJuego
     
-   sgte_tecla: 
+   sgte_tecla:                      
     cmp al, 'a'
     jne rep_pide_tecla
     mov NPartida, 2
@@ -844,7 +844,7 @@ code segment
     xor si,si
 
   sigue:    
-    cmp NPartida,2
+    cmp NPartida,2                  
     je salta_inic_Mtablero
     mov MTablero[si], 0
 
