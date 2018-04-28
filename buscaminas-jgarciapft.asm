@@ -905,14 +905,20 @@ code segment
     cmp MTablero[si], 0                 ;Comprueba si hay alguna mina adyacente
     je callDestaparRecursivo            ;No hay ninguna mina alrededor la casilla. Se destapan tambien las adyacente
      
-    ;Hay alguna mina alrededor. Se imprime el numero de minas adyacentes 
+    ;Hay alguna mina alrededor. Se imprime el numero de minas adyacentes
+    ;Convierte el numero almacenado en el vector MTablero a una cadena para su impresion en el tablero 
     mov al, MTablero[si]
+    xor ah, ah                          
+    lea dx, cadenaEsc
+    call NumeroACadena
+    ;Asigna los parametros para llamar a 'ImprimeCarColor'
+    mov al, cadenaEsc
     mov bl, COLORDESTAPADO
     ;Coloca el cursor para imprimir el numero de minas adyacentes en la casilla destapda (indicada por la posicion del raton)  
-    mov bl, fRaton
-    mov bh, cRaton
-    mov fila, bl
-    mov colum, bh
+    mov dl, fRaton
+    mov dh, cRaton
+    mov fila, dl
+    mov colum, dh
     call ColocarCursor
     call ImprimeCarColor
     jmp finNoMina            
@@ -922,14 +928,14 @@ code segment
         jmp finNoMina  
                 
     finHayMina:                         
-        ;Maneja la representacion grafica de la mina
+        ;Asigna los parametros para llamar a 'ImprimeCarColor'
         mov al, carMina
         mov bl, 0
         ;Coloca el cursor para imprimir la mina en la casilla destapada (indicada por la posicion del raton)
-        mov bl, fRaton
-        mov bh, cRaton
-        mov fila, bl
-        mov colum, bh
+        mov dl, fRaton
+        mov dh, cRaton
+        mov fila, dl
+        mov colum, dh
         call ColocarCursor
         call ImprimeCarColor
         
