@@ -930,66 +930,75 @@ start:
     mov es, ax 
                                         
     recargarJuego:                      ;Al inicio de cada partida se comprueba las condiciones de recarga de partida indicadas por el usuario
-        or NPartida, 0
-        jz nuevaPartida                 ;Primera vez que se ejecuta al programa                  
+        cmp NPartida, 0
+        je inicializarPartida           ;Primera vez que se ejecuta al programa                  
          
-        call ResetVariables             ;Se ha elegido volver a jugar una nueva partida, por lo que hay que reinicializar las variables. El PROC InicializarEntorno determinara el tablero con el que jugar
+        call ResetVariables             ;Se ha elegido volver a jugar una nueva partida, por lo que hay que reinicializar las variables. El PROC InicializarEntorno maneja la inicializacion del tablero bajo estas condiciones
         
-    nuevaPartida:
+    inicializarPartida:
         call InicializarEntorno         ;Inicializa el entorno grafico y pide al usuario el tablero a cargar. Se ejecuta siempre que se inicie una nueva partida
     
     bLogicaJuego:                       ;Bucle que maneja la logica del juego en cada iteracion
         call EsperarClic                
         call PosicionRatonValida        ;Evalua la posicion del puntero del raton
         
-        test botones, 2                 ;Comprueba el boton pulsado
-        jz clicIzq                   
+        cmp botones, 1                  ;Comprueba el boton pulsado
+        je clicIzq                   
         
         ;Codigo para eventos de ClicDerecho
-        test al, al
-        jz sgte                         ;Comprueba la validez del clic
+        test al, al                     ;Comprueba la validez del clic
+        jz sgteLogicaJuego              ;Clic invalido           
         
         ;Clic valido
+        ;Conversion de coordenadas
+        call PantallaATablero
+        call CalculaIndiceLineal
         call PosibleBloqueo  
-        
-        ;Clic invalido
-        sgte:
-            jmp sgteLogicaJuego
+       
+        jmp sgteLogicaJuego             
                                                          
     ;Codigo para eventos de ClicIzquierdo    
     clicIzq:
         test al, al                     ;Comprueba la validez de la posicion del puntero del raton
         jz posibleSalida              
         
-        ;El clic es valido                   
-        call DestaparCasilla    
+        ;Clic valido. Se intenta destapar la casilla clicada   
+        ;Conversion de coordenadas
+        call PantallaATablero
+        call CalculaIndiceLineal                   
+        call DestaparCasilla 
+        
+        cmp hayMina, 0                  ;Comprueba si se ha destapado una mina
+        je sgteLogicaJuego              ;No se ha destapado. Siguiente 'tick'
+        
+        ;Se ha destapado una mina. Se actualiza la bandera para indicar que el jugador ha perdido la partida
+        mov fin, 2    
         jmp sgteLogicaJuego              
         
-        ;El clic NO es valido
+        ;Clic invalido. Es posible que se haya pulsado la cruz ('X') para finalizar la partida
         posibleSalida: 
-            or cRaton, 0                ;Comprueba la coordenada X. Si es la esquina superior izquierda (cruz 'X') es 0
-            jnz sgteLogicaJuego
+            cmp cRaton, 0               ;Comprueba la coordenada X. Si es la esquina superior izquierda (cruz 'X') es 0
+            jne sgteLogicaJuego
             
-            or fRaton, 0                ;Comrpueba que ademas la coordenada Y tambien sea 0 para determinar que se ha pulsado en la cruz
-            jnz sgteLogicaJuego
+            cmp fRaton, 0               ;Comrpueba que ademas la coordenada Y tambien sea 0 para determinar que se ha pulsado en la cruz
+            jne sgteLogicaJuego
             
             mov fin, 1
                                         
-     sgteLogicaJuego:                   ;Manejador de finalizacion/iteracion de la partida
-        or fin, 0                       ;Si fin=0 se pasa al siguiente 'tick'
-        jz bLogicaJuego
-        
-        ;Se ha terminado la partida
+     sgteLogicaJuego:                   ;Manejador de finalizacion/'tick' de la partida
         call CompruebaFinPartidaGanada  ;Actualiza la bandera 'fin' si el jugador ha ganado
+        cmp fin, 0                      ;Si fin=0 se pasa al siguiente 'tick'
+        je bLogicaJuego
+        
+        ;Se ha terminado la partida     
         call ContinuarOnoJuego          ;Comprueba las condiciones de fin y muestra los mensajes correspondientes                                                    
         
-        or NPartida, 0                  ;Maneja la finalizacion del programa. Si no se termina, se recarga el juego
+        cmp NPartida, 0                 ;Maneja la finalizacion del programa. Si no se termina, se recarga el juego
         jne recargarJuego               
         
      ;Fin del programa
-     finJuego:
-        mov ah, 4ch
-        int 21h
+     mov ah, 4ch
+     int 21h
 
 code ends
 
