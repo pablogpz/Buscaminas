@@ -886,17 +886,20 @@ code segment
   ;E: SI es el indice de la casilla a destapar
   ;S: hayMina = 1 si hay mina; hayMina = 0 si no la hay
   DestaparCasilla PROC
+    ;Comprueba que la casilla no este bloqueada
     cmp Bloqueado[si], 1
     je finNoMina
     
+    ;Comprueba que la casilla no haya sido ya destapada
     or Destapado[si], 1
     je finNoMina
-                 
-    cmp MTablero[si], -1
-    je finHayMina
     
-    cmp MTablero[si], 0
-    je callDestaparRecursivo
+    ;Comprueba si hay mina             
+    cmp MTablero[si], -1
+    je finHayMina                       ;Hay mina
+    
+    cmp MTablero[si], 0                 ;Comprueba si hay alguna mina adyacente
+    je callDestaparRecursivo            ;No hay ninguna mina alrededor la casilla. Se destapan tambien las adyacente
     
     mov al, MTablero[si]
     mov bl, COLORDESTAPADO
@@ -908,16 +911,17 @@ code segment
         jmp finNoMina  
                 
     finHayMina:                         ;cRaton y fRaton ya estan indicados
+        ;Maneja la representacion grafica de la mina
         mov al, carMina
         mov bl, COLORBLOQUEADO
         call ColocarCursor
         call ImprimeCarColor
         
-        mov hayMina, 1
+        mov hayMina, 1                  ;Actualiza la bandera de condicion de final de partida
         jmp final           
                  
     finNoMina:
-        mov hayMina, 0
+        mov hayMina, 0                  ;Actualiza la bandera de condicion de final de partida
     
     final:
         ret
