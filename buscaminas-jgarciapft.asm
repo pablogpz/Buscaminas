@@ -907,14 +907,14 @@ code segment
      
     ;Hay alguna mina alrededor. Se imprime el numero de minas adyacentes 
     mov al, MTablero[si]
-    mov bl COLORDESTAPADO
+    mov bl, COLORDESTAPADO
     ;Coloca el cursor para imprimir el numero de minas adyacentes en la casilla destapda (indicada por la posicion del raton)  
     mov bl, fRaton
     mov bh, cRaton
     mov fila, bl
     mov colum, bh
     call ColocarCursor
-    call ImprimirCarColor
+    call ImprimeCarColor
     jmp finNoMina            
                 
     callDestaparRecursivo:
