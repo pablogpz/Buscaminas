@@ -895,8 +895,8 @@ code segment
     cmp MTablero[si], -1
     je finHayMina
     
-    or MTablero[si], 0
-    jz callDestaparRecursivo
+    cmp MTablero[si], 0
+    je callDestaparRecursivo
     
     mov al, MTablero[si]
     mov bl, COLORDESTAPADO
