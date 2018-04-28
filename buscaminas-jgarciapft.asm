@@ -886,8 +886,41 @@ code segment
   ;E: SI es el indice de la casilla a destapar
   ;S: hayMina = 1 si hay mina; hayMina = 0 si no la hay
   DestaparCasilla PROC
-
-    ret
+    cmp Bloqueado[si], 1
+    je finNoMina
+    
+    or Destapado[si], 1
+    je finNoMina
+                 
+    cmp MTablero[si], -1
+    je finHayMina
+    
+    or MTablero[si], 0
+    jz callDestaparRecursivo
+    
+    mov al, MTablero[si]
+    mov bl, COLORDESTAPADO
+    call ColocarCursor
+    call ImprimeCarColor
+    jmp finNoMina            
+                
+    callDestaparRecursivo:
+        jmp finNoMina  
+                
+    finHayMina:                         ;cRaton y fRaton ya estan indicados
+        mov al, carMina
+        mov bl, COLORBLOQUEADO
+        call ColocarCursor
+        call ImprimeCarColor
+        
+        mov hayMina, 1
+        jmp final           
+                 
+    finNoMina:
+        mov hayMina, 0
+    
+    final:
+        ret
   DestaparCasilla ENDP
 
   
