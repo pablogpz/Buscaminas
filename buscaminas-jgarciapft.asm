@@ -886,6 +886,10 @@ code segment
   ;E: SI es el indice de la casilla a destapar
   ;S: hayMina = 1 si hay mina; hayMina = 0 si no la hay
   DestaparCasilla PROC
+    push ax                             ;Para el caracter a imprimir
+    push bx                             ;Para el codigo de color
+    push dx                             ;Para manipular la posicion del cursor
+    
     ;Comprueba que la casilla no este bloqueada
     cmp Bloqueado[si], 1
     je finNoMina
@@ -900,20 +904,32 @@ code segment
     
     cmp MTablero[si], 0                 ;Comprueba si hay alguna mina adyacente
     je callDestaparRecursivo            ;No hay ninguna mina alrededor la casilla. Se destapan tambien las adyacente
-    
+     
+    ;Hay alguna mina alrededor. Se imprime el numero de minas adyacentes 
     mov al, MTablero[si]
-    mov bl, COLORDESTAPADO
+    mov bl COLORDESTAPADO
+    ;Coloca el cursor para imprimir el numero de minas adyacentes en la casilla destapda (indicada por la posicion del raton)  
+    mov bl, fRaton
+    mov bh, cRaton
+    mov fila, bl
+    mov colum, bh
     call ColocarCursor
-    call ImprimeCarColor
+    call ImprimirCarColor
     jmp finNoMina            
                 
     callDestaparRecursivo:
+        call DestaparRecursivo
         jmp finNoMina  
                 
-    finHayMina:                         ;cRaton y fRaton ya estan indicados
+    finHayMina:                         
         ;Maneja la representacion grafica de la mina
         mov al, carMina
-        mov bl, COLORBLOQUEADO
+        mov bl, 0
+        ;Coloca el cursor para imprimir la mina en la casilla destapada (indicada por la posicion del raton)
+        mov bl, fRaton
+        mov bh, cRaton
+        mov fila, bl
+        mov colum, bh
         call ColocarCursor
         call ImprimeCarColor
         
@@ -924,6 +940,9 @@ code segment
         mov hayMina, 0                  ;Actualiza la bandera de condicion de final de partida
     
     final:
+        pop dx
+        pop bx
+        pop ax
         ret
   DestaparCasilla ENDP
 
