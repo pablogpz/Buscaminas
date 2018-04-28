@@ -944,7 +944,8 @@ code segment
                  
     finNoMina:
         mov hayMina, 0                  ;Actualiza la bandera de condicion de final de partida
-    
+        inc destapadas                  ;Actualiza el contador de casillas destapadas
+        
     final:
         pop dx
         pop bx
