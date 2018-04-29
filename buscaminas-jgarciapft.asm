@@ -886,8 +886,71 @@ code segment
   ;E: SI es el indice de la casilla a destapar
   ;S: hayMina = 1 si hay mina; hayMina = 0 si no la hay
   DestaparCasilla PROC
-
-    ret
+    push ax                             ;Para el caracter a imprimir
+    push bx                             ;Para el codigo de color
+    push dx                             ;Para manipular la posicion del cursor
+    
+    ;Comprueba que la casilla no este bloqueada
+    cmp Bloqueado[si], 1
+    je finNoMina
+    
+    ;Comprueba que la casilla no haya sido ya destapada
+    or Destapado[si], 1
+    je finNoMina
+    
+    ;Comprueba si hay mina             
+    cmp MTablero[si], -1
+    je finHayMina                       ;Hay mina
+    
+    cmp MTablero[si], 0                 ;Comprueba si hay alguna mina adyacente
+    je callDestaparRecursivo            ;No hay ninguna mina alrededor la casilla. Se destapan tambien las adyacente
+     
+    ;Hay alguna mina alrededor. Se imprime el numero de minas adyacentes
+    ;Convierte el numero almacenado en el vector MTablero a una cadena para su impresion en el tablero 
+    mov al, MTablero[si]
+    xor ah, ah                          
+    lea dx, cadenaEsc
+    call NumeroACadena
+    ;Asigna los parametros para llamar a 'ImprimeCarColor'
+    mov al, cadenaEsc
+    mov bl, COLORDESTAPADO
+    ;Coloca el cursor para imprimir el numero de minas adyacentes en la casilla destapda (indicada por la posicion del raton)  
+    mov dl, fRaton
+    mov dh, cRaton
+    mov fila, dl
+    mov colum, dh
+    call ColocarCursor
+    call ImprimeCarColor
+    jmp finNoMina            
+                
+    callDestaparRecursivo:
+        call DestaparRecursivo
+        jmp finNoMina  
+                
+    finHayMina:                         
+        ;Asigna los parametros para llamar a 'ImprimeCarColor'
+        mov al, carMina
+        mov bl, 0
+        ;Coloca el cursor para imprimir la mina en la casilla destapada (indicada por la posicion del raton)
+        mov dl, fRaton
+        mov dh, cRaton
+        mov fila, dl
+        mov colum, dh
+        call ColocarCursor
+        call ImprimeCarColor
+        
+        mov hayMina, 1                  ;Actualiza la bandera de condicion de final de partida
+        jmp final           
+                 
+    finNoMina:
+        mov hayMina, 0                  ;Actualiza la bandera de condicion de final de partida
+        inc destapadas                  ;Actualiza el contador de casillas destapadas
+        
+    final:
+        pop dx
+        pop bx
+        pop ax
+        ret
   DestaparCasilla ENDP
 
   
