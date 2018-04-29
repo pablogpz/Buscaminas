@@ -940,11 +940,8 @@ code segment
     ;Se puede destapar la casilla. No esta ni destapada ni bloqueada
     ;Codigo comun a si hay mina alrededor o no
     mov bl, COLORDESTAPADO               ;Asigna el codigo de color
-    ;Coloca el cursor para imprimir el numero de minas adyacentes en la casilla destapda (indicada por la posicion del raton)  
-    mov dl, fTablero
-    mov dh, cTablero
-    mov fila, dl
-    mov colum, dh
+    ;Coloca el cursor para imprimir el numero de minas adyacentes en la casilla destapda (indicada por la posicion del tablero)  
+    call TableroAPantalla
     call ColocarCursor
     
     cmp MTablero[si], 0                  ;Comprueba si hay mina alrededor
