@@ -890,42 +890,13 @@ code segment
     push bx                             ;Para el codigo de color
     push dx                             ;Para manipular la posicion del cursor
     
-    ;Comprueba que la casilla no este bloqueada
-    cmp Bloqueado[si], 1
-    je finNoMina
-    
-    ;Comprueba que la casilla no haya sido ya destapada
-    or Destapado[si], 1
-    je finNoMina
-    
     ;Comprueba si hay mina             
     cmp MTablero[si], -1
     je finHayMina                       ;Hay mina
-    
-    cmp MTablero[si], 0                 ;Comprueba si hay alguna mina adyacente
-    je callDestaparRecursivo            ;No hay ninguna mina alrededor la casilla. Se destapan tambien las adyacente
      
-    ;Hay alguna mina alrededor. Se imprime el numero de minas adyacentes
-    ;Convierte el numero almacenado en el vector MTablero a una cadena para su impresion en el tablero 
-    mov al, MTablero[si]
-    xor ah, ah                          
-    lea dx, cadenaEsc
-    call NumeroACadena
-    ;Asigna los parametros para llamar a 'ImprimeCarColor'
-    mov al, cadenaEsc
-    mov bl, COLORDESTAPADO
-    ;Coloca el cursor para imprimir el numero de minas adyacentes en la casilla destapda (indicada por la posicion del raton)  
-    mov dl, fRaton
-    mov dh, cRaton
-    mov fila, dl
-    mov colum, dh
-    call ColocarCursor
-    call ImprimeCarColor
-    jmp finNoMina            
-                
-    callDestaparRecursivo:
-        call DestaparRecursivo
-        jmp finNoMina  
+    ;No hay mina. Se destapa y si no hay ninguna alrededor se destapan tambien las adyacentes y viceversa 
+    call DestaparRecursivo                         
+    jmp finNoMina  
                 
     finHayMina:                         
         ;Asigna los parametros para llamar a 'ImprimeCarColor'
@@ -944,7 +915,6 @@ code segment
                  
     finNoMina:
         mov hayMina, 0                  ;Actualiza la bandera de condicion de final de partida
-        inc destapadas                  ;Actualiza el contador de casillas destapadas
         
     final:
         pop dx
@@ -959,11 +929,45 @@ code segment
   ;E: destapadas
   ;S: destapadas
   DestaparRecursivo PROC
-    cmp destapada[si], 1
-    je finRec
+    cmp Destapado[si], 1                 ;Comprueba que la casilla no este destapada
+    je finRec                            ;Lo esta. Finaliza la recursion
     
-    cmp bloqueadas[si], 1
-    je finRec
+    cmp Bloqueado[si], 1                 ;Comprueba que la casilla no este bloqueada
+    je finRec                            ;Lo esta. Finaliza la recursion
+    
+    ;MANEJAR LOS LIMITES DEL TABLERO
+    
+    ;Se puede destapar la casilla. No esta ni destapada ni bloqueada
+    ;Codigo comun a si hay mina alrededor o no
+    mov bl, COLORDESTAPADO               ;Asigna el codigo de color
+    ;Coloca el cursor para imprimir el numero de minas adyacentes en la casilla destapda (indicada por la posicion del raton)  
+    mov dl, fTablero
+    mov dh, cTablero
+    mov fila, dl
+    mov colum, dh
+    call ColocarCursor
+    
+    cmp MTablero[si], 0                  ;Comprueba si hay mina alrededor
+    jg imprimeNumero
+    
+    ;No hay mina alrededor. Se imprime un caracter en blanco y se destapan las adyacentes
+    mov al, ' '
+    call ImprimeCarColor
+    ;MANEJAR LAS CASILLAS ADYACENTES
+    jmp finRec
+    
+    imprimeNumero:                       ;Hay mina alrededor. Se imprime el numero de minas y finaliza la recursion
+        ;Convierte el numero almacenado en el vector MTablero a una cadena para su impresion en el tablero
+        mov al, MTablero[si]
+        xor ah, ah                          
+        lea dx, cadenaEsc
+        call NumeroACadena
+        ;Asigna los parametros para llamar a 'ImprimeCarColor'
+        mov al, cadenaEsc             
+        call ImprimeCarColor
+        
+        inc Destapado[si]               ;Actualiza el vector de casillas destapadas
+        inc destapadas                  ;Actualiza el contador de casillas destapadas
     
     finRec:
         ret
