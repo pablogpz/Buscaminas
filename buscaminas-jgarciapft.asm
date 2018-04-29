@@ -935,8 +935,6 @@ code segment
     cmp Bloqueado[si], 1                 ;Comprueba que la casilla no este bloqueada
     je finRec                            ;Lo esta. Finaliza la recursion
     
-    ;MANEJAR LOS LIMITES DEL TABLERO
-    
     ;Se puede destapar la casilla. No esta ni destapada ni bloqueada
     ;Codigo comun a si hay mina alrededor o no
     mov bl, COLORDESTAPADO               ;Asigna el codigo de color
@@ -950,7 +948,21 @@ code segment
     ;No hay mina alrededor. Se imprime un caracter en blanco y se destapan las adyacentes
     mov al, ' '
     call ImprimeCarColor
-    ;MANEJAR LAS CASILLAS ADYACENTES
+    
+    inc Destapado[si]                    ;Actualiza el vector de casillas destapadas
+    inc destapadas                       ;Actualiza el contador de casillas destapadas
+    
+    ;Se llama recursivamente al procedimiento para las casillas adyacentes
+    ;Pero primero hay que comprobar que casillas son potencialmente destapabless comparando con los limites del tablero
+    sub cTablero, 2
+    cmp cTablero, XTABLEROINI
+    jg destaparIzqda
+    jmp finRec
+    
+    destaparIzqda:
+        call CalculaIndiceLineal
+        call DestaparRecursivo
+    
     jmp finRec
     
     imprimeNumero:                       ;Hay mina alrededor. Se imprime el numero de minas y finaliza la recursion
