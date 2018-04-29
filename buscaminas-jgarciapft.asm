@@ -868,7 +868,7 @@ code segment
   ;F: Inicializa la variable MTablero generando posiciones aleatorias para la localizacion de minas
   ;   En base a las minas colocadas se calculan los contadores alrededor de cada mina
   InicializarTablero PROC
-
+    
     ret
   InicializarTablero ENDP    
 
@@ -896,8 +896,14 @@ code segment
   ;E: destapadas
   ;S: destapadas
   DestaparRecursivo PROC
-
-    ret
+    cmp destapada[si], 1
+    je finRec
+    
+    cmp bloqueadas[si], 1
+    je finRec
+    
+    finRec:
+        ret
   DestaparRecursivo ENDP
  
  
