@@ -954,9 +954,8 @@ code segment
     
     ;Se llama recursivamente al procedimiento para las casillas adyacentes
     ;Pero primero hay que comprobar que casillas son potencialmente destapabless comparando con los limites del tablero
-    sub cTablero, 2
-    cmp cTablero, XTABLEROINI
-    jg destaparIzqda
+    dec cTablero
+    jns destaparIzqda
     jmp finRec
     
     destaparIzqda:
