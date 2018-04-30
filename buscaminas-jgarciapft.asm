@@ -941,6 +941,9 @@ code segment
     ;Coloca el cursor para imprimir el numero de minas adyacentes en la casilla destapda (indicada por la posicion del tablero)  
     call TableroAPantalla
     call ColocarCursor
+    ;Actualiza el contador y el vector de destapadas
+    inc Destapado[si]                    
+    inc destapadas                       
     
     cmp MTablero[si], 0                  ;Comprueba si hay mina alrededor
     jg imprimeNumero
@@ -949,30 +952,48 @@ code segment
     mov al, ' '
     call ImprimeCarColor
     
-    inc Destapado[si]                    ;Actualiza el vector de casillas destapadas
-    inc destapadas                       ;Actualiza el contador de casillas destapadas
-    
     ;Se llama recursivamente al procedimiento para las casillas adyacentes
     ;Pero primero hay que comprobar que casillas son potencialmente destapabless comparando con los limites del tablero
+    movIzquierda:
     dec cTablero
-    jns destaparIzqda                    ;Si no se puede ir a la izquierda, se puede ir hacia la derecha                          
-    inc cTablero
+    js finRec                                              
     
-    inc cTablero
-    inc si
-    call DestaparRecursivo               ;Destapa la casilla derecha   
-    dec cTablero
     dec si
+    call DestaparRecursivo               ;Destapa la casilla izquierda   
+    ;inc cTablero
+    ;inc si
     
-    jmp finRec
+    dec fTablero
+    js finRec
     
-    destaparIzqda:
-        dec si
-        call DestaparRecursivo           ;Destapa la casilla izquierda        
-        inc cTablero
-        inc si
-
-    jmp finRec
+    sub si, 8
+    call DestaparRecursivo               ;Destapa la casilla superior izquierda
+    ;inc fTablero
+    ;add si, 8
+    
+    movDerecha:
+    inc cTablero
+    cmp cTablero, 7
+    jg finRec
+    
+    inc si
+    call DestaparRecursivo               ;Destapa las casillas superior y superior derecha
+    ;dec cTablero
+    ;dec si
+    jmp movDerecha
+    
+    movDebajo:
+    inc fTablero
+    cmp fTablero, 7
+    jg finRec
+    
+    add si, 8                            ;Destapa las casillas derecha e inferior derecha
+    call DestaparRecursivo
+    ;dec fTablero
+    ;sub si, 8
+    jmp movDebajo
+    
+    jmp movIzquierda
     
     imprimeNumero:                       ;Hay mina alrededor. Se imprime el numero de minas y finaliza la recursion
         ;Convierte el numero almacenado en el vector MTablero a una cadena para su impresion en el tablero
@@ -983,9 +1004,6 @@ code segment
         ;Asigna los parametros para llamar a 'ImprimeCarColor'
         mov al, cadenaEsc             
         call ImprimeCarColor
-        
-        inc Destapado[si]                ;Actualiza el vector de casillas destapadas
-        inc destapadas                   ;Actualiza el contador de casillas destapadas
     
     finRec:
         ret
