@@ -956,11 +956,19 @@ code segment
     ;Pero primero hay que comprobar que casillas son potencialmente destapabless comparando con los limites del tablero
     dec cTablero
     jns destaparIzqda
+    jmp finRec                           ;Si no se puede ir a la izquierda, se puede ir hacia la derecha
+    
+    inc cTablero
+    inc si
+    call DestaparRecursivo               ;Destapa la casilla derecha
+    dec cTablero
+    dec si
     jmp finRec
     
     destaparIzqda:
         dec si
-        call DestaparRecursivo
+        call DestaparRecursivo           ;Destapa la casilla izquierda
+        inc cTablero
         inc si
     
     jmp finRec
