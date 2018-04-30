@@ -954,46 +954,97 @@ code segment
     
     ;Se llama recursivamente al procedimiento para las casillas adyacentes
     ;Pero primero hay que comprobar que casillas son potencialmente destapabless comparando con los limites del tablero
-    movIzquierda:
+    ;Destapa la casilla izquierda
     dec cTablero
     js finRec                                              
     
     dec si
-    call DestaparRecursivo               ;Destapa la casilla izquierda   
-    ;inc cTablero
-    ;inc si
+    call DestaparRecursivo                  
+    inc cTablero
+    inc si     
     
+    ;Destapa la casilla superior izquierda
+    dec cTablero
+    js finRec
+    dec fTablero
+    js finRec
+    
+    sub si, 9
+    call DestaparRecursivo
+    inc cTablero               
+    inc fTablero
+    add si, 9
+    
+    ;Destapa la casilla superior
     dec fTablero
     js finRec
     
     sub si, 8
-    call DestaparRecursivo               ;Destapa la casilla superior izquierda
-    ;inc fTablero
-    ;add si, 8
+    call DestaparRecursivo               
+    inc fTablero
+    add si, 8
     
-    movDerecha:
+    ;Destapa la casilla superior derecha
+    inc cTablero
+    cmp cTablero, 7
+    jg finRec
+    dec fTablero
+    js finRec
+    
+    sub si, 7
+    call DestaparRecursivo
+    dec cTablero               
+    inc fTablero
+    add si, 7
+    
+    ;Destapa la casilla derecha
     inc cTablero
     cmp cTablero, 7
     jg finRec
     
-    inc si
-    call DestaparRecursivo               ;Destapa las casillas superior y superior derecha
-    ;dec cTablero
-    ;dec si
-    jmp movDerecha
+    inc si                           
+    call DestaparRecursivo
+    dec cTablero
+    dec si
     
-    movDebajo:
+    ;Destapa la casilla inferior derecha
+    inc cTablero
+    cmp cTablero, 7
+    jg finRec
     inc fTablero
     cmp fTablero, 7
     jg finRec
     
-    add si, 8                            ;Destapa las casillas derecha e inferior derecha
+    add si, 9                           
     call DestaparRecursivo
-    ;dec fTablero
-    ;sub si, 8
-    jmp movDebajo
+    dec cTablero 
+    dec fTablero
+    sub si, 9
     
-    jmp movIzquierda
+    ;Destapa la casilla inferior
+    inc fTablero
+    cmp fTablero, 7
+    jg finRec
+    
+    add si, 8
+    call DestaparRecursivo               
+    dec fTablero
+    sub si, 8
+    
+    ;Destapa la casilla inferior izquierda
+    dec cTablero
+    js finRec
+    inc fTablero
+    cmp fTablero, 7
+    jg finRec
+    
+    add si, 7
+    call DestaparRecursivo
+    dec cTablero               
+    inc fTablero
+    sub si, 7
+    
+    jmp finRec
     
     imprimeNumero:                       ;Hay mina alrededor. Se imprime el numero de minas y finaliza la recursion
         ;Convierte el numero almacenado en el vector MTablero a una cadena para su impresion en el tablero
