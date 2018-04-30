@@ -959,8 +959,9 @@ code segment
     jmp finRec
     
     destaparIzqda:
-        call CalculaIndiceLineal
+        dec si
         call DestaparRecursivo
+        inc si
     
     jmp finRec
     
@@ -974,8 +975,8 @@ code segment
         mov al, cadenaEsc             
         call ImprimeCarColor
         
-        inc Destapado[si]               ;Actualiza el vector de casillas destapadas
-        inc destapadas                  ;Actualiza el contador de casillas destapadas
+        inc Destapado[si]                ;Actualiza el vector de casillas destapadas
+        inc destapadas                   ;Actualiza el contador de casillas destapadas
     
     finRec:
         ret
