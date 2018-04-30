@@ -955,22 +955,23 @@ code segment
     ;Se llama recursivamente al procedimiento para las casillas adyacentes
     ;Pero primero hay que comprobar que casillas son potencialmente destapabless comparando con los limites del tablero
     dec cTablero
-    jns destaparIzqda
-    jmp finRec                           ;Si no se puede ir a la izquierda, se puede ir hacia la derecha
+    jns destaparIzqda                    ;Si no se puede ir a la izquierda, se puede ir hacia la derecha                          
+    inc cTablero
     
     inc cTablero
     inc si
-    call DestaparRecursivo               ;Destapa la casilla derecha
+    call DestaparRecursivo               ;Destapa la casilla derecha   
     dec cTablero
     dec si
+    
     jmp finRec
     
     destaparIzqda:
         dec si
-        call DestaparRecursivo           ;Destapa la casilla izquierda
+        call DestaparRecursivo           ;Destapa la casilla izquierda        
         inc cTablero
         inc si
-    
+
     jmp finRec
     
     imprimeNumero:                       ;Hay mina alrededor. Se imprime el numero de minas y finaliza la recursion
