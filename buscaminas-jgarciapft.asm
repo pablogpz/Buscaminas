@@ -941,6 +941,9 @@ code segment
     ;Coloca el cursor para imprimir el numero de minas adyacentes en la casilla destapda (indicada por la posicion del tablero)  
     call TableroAPantalla
     call ColocarCursor
+    ;Actualiza el contador y el vector de casillas destapadas
+    inc Destapado[si]               
+    inc destapadas                   
     
     cmp MTablero[si], 0                  ;Comprueba si hay mina alrededor
     jg imprimeNumero
@@ -948,9 +951,6 @@ code segment
     ;No hay mina alrededor. Se imprime un caracter en blanco y se destapan las adyacentes
     mov al, ' '
     call ImprimeCarColor
-    
-    inc Destapado[si]                    ;Actualiza el vector de casillas destapadas
-    inc destapadas                       ;Actualiza el contador de casillas destapadas
     
     ;Se llama recursivamente al procedimiento para las casillas adyacentes
     ;Pero primero hay que comprobar que casillas son potencialmente destapabless comparando con los limites del tablero
@@ -983,9 +983,6 @@ code segment
         ;Asigna los parametros para llamar a 'ImprimeCarColor'
         mov al, cadenaEsc             
         call ImprimeCarColor
-        
-        inc Destapado[si]                ;Actualiza el vector de casillas destapadas
-        inc destapadas                   ;Actualiza el contador de casillas destapadas
     
     finRec:
         ret
