@@ -888,7 +888,7 @@ code segment
   DestaparCasilla PROC
     push ax                             ;Para el caracter a imprimir
     push bx                             ;Para el codigo de color
-    push dx                             ;Para manipular la posicion del cursor
+    push dx                             ;Para cargar la direccion de la cadena de escritura en pantalla 'cadenaEsc' 
     
     ;Comprueba si hay mina             
     cmp MTablero[si], -1
@@ -901,12 +901,9 @@ code segment
     finHayMina:                         
         ;Asigna los parametros para llamar a 'ImprimeCarColor'
         mov al, carMina
-        mov bl, 0
+        xor bl, bl
         ;Coloca el cursor para imprimir la mina en la casilla destapada (indicada por la posicion del raton)
-        mov dl, fRaton
-        mov dh, cRaton
-        mov fila, dl
-        mov colum, dh
+        call TableroAPantalla
         call ColocarCursor
         call ImprimeCarColor
         
