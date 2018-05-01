@@ -952,94 +952,125 @@ code segment
     ;Se llama recursivamente al procedimiento para las casillas adyacentes
     ;Pero primero hay que comprobar que casillas son potencialmente destapabless comparando con los limites del tablero
     ;Destapa la casilla izquierda
-    dec cTablero
-    js finRec                                              
+    mov dl, cTablero
+    dec dl
+    js sgteIzqSup                                              
     
+    dec cTablero
     dec si
     call DestaparRecursivo                  
-    inc cTablero
     inc si     
+    inc cTablero
     
     ;Destapa la casilla superior izquierda
-    dec cTablero
-    js finRec
-    dec fTablero
-    js finRec
+    sgteIzqSup:
+    mov dl, cTablero
+    dec dl
+    js sgteSup
+    mov dl, fTablero
+    dec dl
+    js sgteSup
     
+    dec cTablero
+    dec fTablero
     sub si, 9
     call DestaparRecursivo
-    inc cTablero               
-    inc fTablero
     add si, 9
+    inc fTablero
+    inc cTablero               
     
     ;Destapa la casilla superior
-    dec fTablero
-    js finRec
+    sgteSup:
+    mov dl, fTablero
+    dec dl
+    js sgteSupDer
     
+    dec fTablero
     sub si, 8
-    call DestaparRecursivo               
+    call DestaparRecursivo
+    add si, 8               
     inc fTablero
-    add si, 8
     
     ;Destapa la casilla superior derecha
-    inc cTablero
-    cmp cTablero, 7
-    jg finRec
-    dec fTablero
-    js finRec
+    sgteSupDer:
+    mov dl, cTablero
+    inc dl
+    cmp dl, 7
+    jg sgteDer
+    mov dl, fTablero
+    dec dl
+    js sgteDer
     
+    inc cTablero
+    dec fTablero
     sub si, 7
     call DestaparRecursivo
-    dec cTablero               
-    inc fTablero
     add si, 7
+    inc fTablero
+    dec cTablero               
     
     ;Destapa la casilla derecha
-    inc cTablero
-    cmp cTablero, 7
-    jg finRec
+    sgteDer:
+    mov dl, cTablero
+    inc dl
+    cmp dl, 7
+    jg sgteInfDer
     
+    inc cTablero
     inc si                           
     call DestaparRecursivo
-    dec cTablero
     dec si
+    dec cTablero
     
     ;Destapa la casilla inferior derecha
-    inc cTablero
-    cmp cTablero, 7
-    jg finRec
-    inc fTablero
-    cmp fTablero, 7
-    jg finRec
+    sgteInfDer:
+    mov dl, cTablero
+    inc dl
+    cmp dl, 7
+    jg sgteInf
+    mov dl, fTablero
+    inc dl
+    cmp dl, 7
+    jg sgteInf
     
+    inc cTablero
+    inc fTablero
     add si, 9                           
     call DestaparRecursivo
-    dec cTablero 
+    sub si, 9 
     dec fTablero
-    sub si, 9
+    dec cTablero  
     
     ;Destapa la casilla inferior
-    inc fTablero
-    cmp fTablero, 7
-    jg finRec
+    sgteInf:
+    mov dl, fTablero
+    inc dl
+    cmp dl, 7
+    jg sgteInfIzq
     
+    inc fTablero
     add si, 8
-    call DestaparRecursivo               
+    call DestaparRecursivo
+    sub si, 8               
     dec fTablero
-    sub si, 8
     
     ;Destapa la casilla inferior izquierda
-    dec cTablero
+    sgteInfIzq:
+    mov dl, cTablero
+    dec dl
     js finRec
-    inc fTablero
-    cmp fTablero, 7
+    mov dl, fTablero
+    inc dl
+    cmp dl, 7
     jg finRec
     
+    dec cTablero
+    inc fTablero
     add si, 7
     call DestaparRecursivo
-    dec cTablero               
-    inc fTablero
-    sub si, 7
+    sub si, 7 
+    dec fTablero
+    inc cTablero               
     
     jmp finRec
     
