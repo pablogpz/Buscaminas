@@ -888,7 +888,7 @@ code segment
   DestaparCasilla PROC
     push ax                             ;Para el caracter a imprimir
     push bx                             ;Para el codigo de color
-    push dx                             ;Para cargar la direccion de la cadena de escritura en pantalla 'cadenaEsc' 
+    push dx                             ;Para cargar la direccion de la cadena de escritura en pantalla 'cadenaEsc' y para manipular la posicion del tablero 
     
     ;Comprueba si hay mina             
     cmp MTablero[si], -1
@@ -952,6 +952,7 @@ code segment
     
     ;Se llama recursivamente al procedimiento para las casillas adyacentes
     ;Pero primero hay que comprobar que casillas son potencialmente destapables comparando con los limites del tablero
+    
     ;Destapa la casilla izquierda
     mov dl, cTablero
     dec dl
