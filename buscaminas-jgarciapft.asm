@@ -913,7 +913,7 @@ code segment
     finNoMina:
         mov hayMina, 0                  ;Actualiza la bandera de condicion de final de partida
         
-    final:
+    final:                              ;Libera la memoria reservada en pila
         pop dx
         pop bx
         pop ax
