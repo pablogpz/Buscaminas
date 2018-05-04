@@ -889,7 +889,7 @@ code segment
     inc minasBloq
     mov al, carBloque
     mov bl, COLORBLOQUEADO
-    jmp imprimir
+    jmp imprimirBloq
     
     desbloquear:
         dec Bloqueado[si]
@@ -897,7 +897,7 @@ code segment
         mov al, carEspa
         xor bl, bl 
     
-    imprimir:     
+    imprimirBloq:     
         call ImprimeCarColor
         call ImprimirBloqueadas 
     
