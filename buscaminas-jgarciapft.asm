@@ -880,20 +880,34 @@ code segment
     push bx
     
     cmp Destapado[si], 1
-    je  finBloq
-     
+    je  finBloq 
     cmp Bloqueado[si], 1
     je  desbloquear
     
     inc Bloqueado[si]
+    inc casillasBloq
+        
+    cmp MTablero[si], -1       
+    jne noIncMinasBloq
+        
     inc minasBloq
-    mov al, carBloq
-    mov bl, COLORBLOQUEADO
-    jmp imprimirBloq
+    
+    noIncMinasBloq:
+        mov al, carBloq
+        mov bl, COLORBLOQUEADO
+        jmp imprimirBloq
+    
     
     desbloquear:
         dec Bloqueado[si]
+        dec casillasBloq
+        
+        cmp MTablero[si], -1
+        jne noDecMinasBloq
+        
         dec minasBloq
+        
+        noDecMinasBloq:
         mov al, carEspa
         xor bl, bl 
     
