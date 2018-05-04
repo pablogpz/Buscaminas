@@ -887,7 +887,7 @@ code segment
     
     inc Bloqueado[si]
     inc minasBloq
-    mov al, carBloque
+    mov al, carBloq
     mov bl, COLORBLOQUEADO
     jmp imprimirBloq
     
