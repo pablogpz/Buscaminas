@@ -876,8 +876,35 @@ code segment
   ;F: Comprueba si una celda (SI) esta bloqueada o no y la bloquea o desbloquea incluida la salida por pantalla 
   ;E: SI posicion lineal para bloquear/desbloquear
   PosibleBloqueo PROC                                                                         
-
-    ret
+    push ax
+    push bx
+    
+    cmp Destapado[si], 1
+    je  finBloq
+     
+    cmp Bloqueado[si], 1
+    je  desbloquear
+    
+    inc Bloqueado[si]
+    inc minasBloq
+    mov al, carBloque
+    mov bl, COLORBLOQUEADO
+    jmp imprimir
+    
+    desbloquear:
+        dec Bloqueado[si]
+        dec minasBloq
+        mov al, carEspa
+        xor bl, bl 
+    
+    imprimir:     
+        call ImprimeCarColor
+        call ImprimirBloqueadas 
+    
+    finBloq:
+        pop bx
+        pop ax
+        ret
   PosibleBloqueo ENDP
   
   
@@ -886,7 +913,7 @@ code segment
   ;E: SI es el indice de la casilla a destapar
   ;S: hayMina = 1 si hay mina; hayMina = 0 si no la hay
   DestaparCasilla PROC
-
+    
     ret
   DestaparCasilla ENDP
 
