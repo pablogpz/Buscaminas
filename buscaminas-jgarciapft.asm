@@ -888,9 +888,13 @@ code segment
   DestaparCasilla PROC
     push ax                             ;Para el caracter a imprimir
     push bx                             ;Para el codigo de color
-    push dx                             ;Para cargar la direccion de la cadena de escritura en pantalla 'cadenaEsc'
+    push dx                             ;Para cargar la direccion de la cadena de escritura en pantalla 'cadenaEsc' y para manipular la posicion del tablero 
     
-    ;Comprueba si hay mina             
+    ;Comprueba que la casilla no este bloqueada
+    cmp Bloqueado[si], 1
+    je finNoMina                        ;Esta bloqueada. No se hace nada
+    
+    ;No esta bloqueda la casilla. Comprueba si hay mina
     cmp MTablero[si], -1
     je finHayMina                       ;Hay mina
      
@@ -903,7 +907,7 @@ code segment
         mov al, carMina
         xor bl, bl
         ;Coloca el cursor para imprimir la mina en la casilla destapada (indicada por la posicion del raton)
-        call PantallaATablero
+        call TableroAPantalla
         call ColocarCursor
         call ImprimeCarColor
         
@@ -913,7 +917,7 @@ code segment
     finNoMina:
         mov hayMina, 0                  ;Actualiza la bandera de condicion de final de partida
         
-    final:
+    final:                              ;Libera la memoria reservada en pila
         pop dx
         pop bx
         pop ax
@@ -938,9 +942,10 @@ code segment
     ;Coloca el cursor para imprimir el numero de minas adyacentes en la casilla destapda (indicada por la posicion del tablero)  
     call TableroAPantalla
     call ColocarCursor
-    ;Actualiza el contador y el vector de destapadas
-    inc Destapado[si]                    
-    inc destapadas                       
+
+    ;Actualiza el contador y el vector de casillas destapadas
+    inc Destapado[si]               
+    inc destapadas                   
     
     cmp MTablero[si], 0                  ;Comprueba si hay mina alrededor
     jg imprimeNumero
@@ -950,7 +955,8 @@ code segment
     call ImprimeCarColor
     
     ;Se llama recursivamente al procedimiento para las casillas adyacentes
-    ;Pero primero hay que comprobar que casillas son potencialmente destapabless comparando con los limites del tablero
+    ;Pero primero hay que comprobar que casillas son potencialmente destapables comparando con los limites del tablero
+    
     ;Destapa la casilla izquierda
     mov dl, cTablero
     dec dl
