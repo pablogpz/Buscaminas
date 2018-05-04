@@ -897,7 +897,9 @@ code segment
         mov al, carEspa
         xor bl, bl 
     
-    imprimirBloq:     
+    imprimirBloq:
+        call TableroAPantalla
+        call ColocarCursor     
         call ImprimeCarColor
         call ImprimirBloqueadas 
     
