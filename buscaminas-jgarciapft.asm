@@ -170,7 +170,7 @@ data ends
    
    
 stack segment
-  DW 128 DUP(0)
+  DW 256 DUP(0)
 stack ends
 
    
