@@ -68,14 +68,13 @@ data segment
   ;Almacenara la posicion (0...63) de las 10 minas cuya posicion calculamos aleatoreamente
   vectorMinas db 10 dup(0)
   
-  
   ;Mensaje para indicar al usuario que puede jugar haciendo clic con el raton
   EsperaClic db "Esperando clic de raton$"    
   
   ;Mensaje para borrar/sobreescribir el mensaje de "Esperando clic de raton" y el numero de casillas bloqueadas
-  CadBorrar db "                       $" 
+  CadBorrar db "                        $" 
     
-  ;Mensaje que precede al numero de casillas que el usuario a bloqueado
+  ;Mensaje que precede al numero de casillas que el usuario ha bloqueado
   mensajeMinas db "Bloqueadas:$" 
   
   ;Mensaje que precede al numero de minas bloqueadas
@@ -163,7 +162,7 @@ data segment
   cadenaEsc db 3 DUP('$')
   
   ;Almacena la respuesta del usuario sobre comenzar una nueva partida
-  NPartida db ?
+  NPartida db 0
  
 data ends
    
@@ -383,6 +382,7 @@ code segment
     and bx,3
     jz bucleEPulsar ;Si no se pulsa ningun boton se queda en bucle
     
+    ;@PREGUNTA: Que es el 'ajuste modo texto'
     shr dx, 3  ;Ajuste modo texto
     shr cx, 3
     mov dh, cl
@@ -509,7 +509,7 @@ code segment
     pop si
     pop cx
     ret
-  InicializaTablerodbG ENDP
+  InicializaTableroDBG ENDP
 
   
   ;F: Borra la pantalla e imprime las cadenas de la pantalla de inicio de cada partida 
@@ -550,7 +550,7 @@ code segment
     
    inic_TabdbG:   
    
-    call InicializaTablerodbG 
+    call InicializaTableroDBG 
    
    fin_inic_tab: 
     call BorrarPantalla
@@ -577,7 +577,8 @@ code segment
 
     lea dx, CadBorrar
     call Imprimir
-
+       
+    ;@PREGUNTA: Es redundante la asignacion de 'fila' y 'colum'?   
     mov fila, YBLOQ
     mov colum, XBLOQ + 13
     call ColocarCursor
@@ -649,7 +650,6 @@ code segment
     call imprimir
 
 
-    
     ;imprime los mensajes de opciones al terminar partida
     mov fila, YMENSAJES3  
     mov colum, XMENSAJES
@@ -684,7 +684,7 @@ code segment
     mov NPartida, 1
     jmp finContinuarJuego
     
-   sgte_tecla: 
+   sgte_tecla:                      
     cmp al, 'a'
     jne rep_pide_tecla
     mov NPartida, 2
@@ -844,7 +844,7 @@ code segment
     xor si,si
 
   sigue:    
-    cmp NPartida,2
+    cmp NPartida,2                  
     je salta_inic_Mtablero
     mov MTablero[si], 0
 
@@ -924,13 +924,81 @@ code segment
 ;********************************* PRINCIPAL ***********************************   
 
 start:
+    ;Inicializacion de los segmentos de datos y extra
     mov ax, data
     mov ds, ax
     mov es, ax 
-
-
-    mov ah, 4ch
-    int 21h
+                                        
+    recargarJuego:                      ;Al inicio de cada partida se comprueba las condiciones de recarga de partida indicadas por el usuario
+        cmp NPartida, 0
+        je inicializarPartida           ;Primera vez que se ejecuta al programa                  
+         
+        call ResetVariables             ;Se ha elegido volver a jugar una nueva partida, por lo que hay que reinicializar las variables. El PROC InicializarEntorno maneja la inicializacion del tablero bajo estas condiciones
+        
+    inicializarPartida:
+        call InicializarEntorno         ;Inicializa el entorno grafico y pide al usuario el tablero a cargar. Se ejecuta siempre que se inicie una nueva partida
+    
+    bLogicaJuego:                       ;Bucle que maneja la logica del juego en cada iteracion
+        call EsperarClic                
+        call PosicionRatonValida        ;Evalua la posicion del puntero del raton
+        
+        cmp botones, 1                  ;Comprueba el boton pulsado
+        je clicIzq                   
+        
+        ;Codigo para eventos de ClicDerecho
+        test al, al                     ;Comprueba la validez del clic
+        jz sgteLogicaJuego              ;Clic invalido           
+        
+        ;Clic valido
+        ;Conversion de coordenadas
+        call PantallaATablero
+        call CalculaIndiceLineal
+        call PosibleBloqueo  
+       
+        jmp sgteLogicaJuego             
+                                                         
+    ;Codigo para eventos de ClicIzquierdo    
+    clicIzq:
+        test al, al                     ;Comprueba la validez de la posicion del puntero del raton
+        jz posibleSalida              
+        
+        ;Clic valido. Se intenta destapar la casilla clicada   
+        ;Conversion de coordenadas
+        call PantallaATablero
+        call CalculaIndiceLineal                   
+        call DestaparCasilla 
+        
+        cmp hayMina, 0                  ;Comprueba si se ha destapado una mina
+        je sgteLogicaJuego              ;No se ha destapado. Siguiente 'tick'
+        
+        ;Se ha destapado una mina. Se actualiza la bandera para indicar que el jugador ha perdido la partida
+        mov fin, 2    
+        jmp sgteLogicaJuego              
+        
+        ;Clic invalido. Es posible que se haya pulsado la cruz ('X') para finalizar la partida
+        posibleSalida: 
+            cmp cRaton, 0               ;Comprueba la coordenada X. Si es la esquina superior izquierda (cruz 'X') es 0
+            jne sgteLogicaJuego
+            
+            cmp fRaton, 0               ;Comrpueba que ademas la coordenada Y tambien sea 0 para determinar que se ha pulsado en la cruz
+            jne sgteLogicaJuego
+            
+            mov fin, 1
+                                        
+     sgteLogicaJuego:                   ;Manejador de finalizacion/'tick' de la partida
+        call CompruebaFinPartidaGanada  ;Actualiza la bandera 'fin' si el jugador ha ganado
+        cmp fin, 0                      ;Si fin=0 se pasa al siguiente 'tick'
+        je bLogicaJuego
+        
+        ;Se ha terminado la partida     
+        call ContinuarOnoJuego          ;Comprueba las condiciones de fin y muestra los mensajes correspondientes                                                    
+        
+        cmp NPartida, 0                 ;Maneja la finalizacion del programa. Si no se termina, se recarga el juego
+        jne recargarJuego               
+        
+     ;Fin del programa
+     mov ah, 4ch
+     int 21h
 
 code ends
 
