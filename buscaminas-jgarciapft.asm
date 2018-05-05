@@ -868,6 +868,7 @@ code segment
   ;F: Inicializa la variable MTablero generando posiciones aleatorias para la localizacion de minas
   ;   En base a las minas colocadas se calculan los contadores alrededor de cada mina
   InicializarTablero PROC
+    push bx
     push cx
     push si
     
@@ -876,10 +877,20 @@ code segment
     lea si, vectorMinas
     call VectorAleatDist  
     
-    ;Insertar minas en el tablero y actualizarlo
+    bInsMinas:                          ;TODO: Evaluar si esta es la mejor manera de manejar el bucle
+        mov bx, cx
+        dec bx
+        mov si, bx
+        mov bl, vectorMinas[si]         ;No hace falta poner a cero 'BH'
+        mov MTablero[di], -1
+        
+        ;TODO: Actualizar el tablero
+    
+        loop bInsMinas
     
     pop si
     pop cx
+    pop bx 
     ret
   InicializarTablero ENDP    
 
