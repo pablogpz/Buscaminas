@@ -954,20 +954,36 @@ code segment
     mov al, ' '
     call ImprimeCarColor
     
-    ;Se llama recursivamente al procedimiento para las casillas adyacentes
+    ;Se llama recursivamente al procedimiento para DESTAPAR LAS CASILLAS ADYACENTES
     ;Pero primero hay que comprobar que casillas son potencialmente destapables comparando con los limites del tablero
     
     ;Destapa la casilla izquierda
     mov dl, cTablero
     dec dl
-    js sgteIzqSup                                              
+    js sgteSup                                              
     
     dec cTablero
     dec si
     call DestaparRecursivo                  
     inc si     
     inc cTablero
+               
+               
+    ;Destapa la casilla inferior izquierda 
+    mov dl, fTablero
+    inc dl
+    cmp dl, 7
+    jg sgteSup
     
+    dec cTablero
+    inc fTablero
+    add si, 7
+    call DestaparRecursivo
+    sub si, 7 
+    dec fTablero
+    inc cTablero
+                  
+                  
     ;Destapa la casilla superior izquierda
     sgteIzqSup:
     mov dl, cTablero
@@ -984,28 +1000,27 @@ code segment
     add si, 9
     inc fTablero
     inc cTablero               
-    
+               
+               
     ;Destapa la casilla superior
     sgteSup:
     mov dl, fTablero
     dec dl
-    js sgteSupDer
+    js sgteDer
     
     dec fTablero
     sub si, 8
     call DestaparRecursivo
     add si, 8               
     inc fTablero
-    
+      
+      
     ;Destapa la casilla superior derecha
     sgteSupDer:
     mov dl, cTablero
     inc dl
     cmp dl, 7
-    jg sgteDer
-    mov dl, fTablero
-    dec dl
-    js sgteDer
+    jg sgteInf
     
     inc cTablero
     dec fTablero
@@ -1014,30 +1029,28 @@ code segment
     add si, 7
     inc fTablero
     dec cTablero               
-    
+         
+         
     ;Destapa la casilla derecha
     sgteDer:
     mov dl, cTablero
     inc dl
     cmp dl, 7
-    jg sgteInfDer
+    jg sgteInf
     
     inc cTablero
     inc si                           
     call DestaparRecursivo
     dec si
     dec cTablero
-    
+      
+      
     ;Destapa la casilla inferior derecha
     sgteInfDer:
-    mov dl, cTablero
-    inc dl
-    cmp dl, 7
-    jg sgteInf
     mov dl, fTablero
     inc dl
     cmp dl, 7
-    jg sgteInf
+    jg finRec
     
     inc cTablero
     inc fTablero
@@ -1046,13 +1059,14 @@ code segment
     sub si, 9 
     dec fTablero
     dec cTablero  
-    
+       
+       
     ;Destapa la casilla inferior
     sgteInf:
     mov dl, fTablero
     inc dl
     cmp dl, 7
-    jg sgteInfIzq
+    jg finRec
     
     inc fTablero
     add si, 8
@@ -1060,26 +1074,9 @@ code segment
     sub si, 8               
     dec fTablero
     
-    ;Destapa la casilla inferior izquierda
-    sgteInfIzq:
-    mov dl, cTablero
-    dec dl
-    js finRec
-    mov dl, fTablero
-    inc dl
-    cmp dl, 7
-    jg finRec
-    
-    dec cTablero
-    inc fTablero
-    add si, 7
-    call DestaparRecursivo
-    sub si, 7 
-    dec fTablero
-    inc cTablero               
-    
     jmp finRec
-    
+     
+     
     imprimeNumero:                       ;Hay mina alrededor. Se imprime el numero de minas y finaliza la recursion
         ;Convierte el numero almacenado en el vector MTablero a una cadena para su impresion en el tablero
         mov al, MTablero[si]
