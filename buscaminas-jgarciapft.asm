@@ -960,38 +960,22 @@ code segment
     ;Destapa la casilla izquierda
     mov dl, cTablero
     dec dl
-    js sgteSup                                              
+    js sgteSup                           ;Fuera de los limites. Descartadas las posiciones izquierdas. Siguiente la posicion superior                   
     
+    ;Actualiza las variables para la llamada recursiva
     dec cTablero
     dec si
-    call DestaparRecursivo                  
+    call DestaparRecursivo
+    ;Deshace los cambios para volver a la posicion desde la que se llamo                  
     inc si     
     inc cTablero
                
-               
-    ;Destapa la casilla inferior izquierda 
-    mov dl, fTablero
-    inc dl
-    cmp dl, 7
-    jg sgteSup
-    
-    dec cTablero
-    inc fTablero
-    add si, 7
-    call DestaparRecursivo
-    sub si, 7 
-    dec fTablero
-    inc cTablero
-                  
-                  
+                 
     ;Destapa la casilla superior izquierda
     sgteIzqSup:
-    mov dl, cTablero
-    dec dl
-    js sgteSup
     mov dl, fTablero
-    dec dl
-    js sgteSup
+    dec dl                               ;Solo hace falta comprobar que se pueda subir
+    js sgteDer                           ;Fuera de los limites. Descartadas las posiciones superiores. Siguiente la posicion derecha
     
     dec cTablero
     dec fTablero
@@ -1005,8 +989,8 @@ code segment
     ;Destapa la casilla superior
     sgteSup:
     mov dl, fTablero
-    dec dl
-    js sgteDer
+    dec dl                               
+    js sgteDer                          ;Fuera de los limites. Descartadas las posiciones superiores. Siguiente la posicion derecha
     
     dec fTablero
     sub si, 8
@@ -1019,8 +1003,8 @@ code segment
     sgteSupDer:
     mov dl, cTablero
     inc dl
-    cmp dl, 7
-    jg sgteInf
+    cmp dl, 7                           ;Solo hace falta comprobar que se pueda avanzar hacia la derecha
+    jg sgteInf                          ;Fuera de los limites. Se descartan las posiciones derechas. Siguiente la posicion inferior
     
     inc cTablero
     dec fTablero
@@ -1036,7 +1020,7 @@ code segment
     mov dl, cTablero
     inc dl
     cmp dl, 7
-    jg sgteInf
+    jg sgteInf                          ;Fuera de los limites. Se descartan las posiciones derechas. Siguiente la posicion inferior
     
     inc cTablero
     inc si                           
@@ -1049,8 +1033,8 @@ code segment
     sgteInfDer:
     mov dl, fTablero
     inc dl
-    cmp dl, 7
-    jg finRec
+    cmp dl, 7                           ;Solo hace falta comprobar que se pueda bajar
+    jg finRec                           ;Fuera de los limites. Se termina la recursividad. Todas las posiciones han sido exploradas
     
     inc cTablero
     inc fTablero
@@ -1066,14 +1050,29 @@ code segment
     mov dl, fTablero
     inc dl
     cmp dl, 7
-    jg finRec
+    jg finRec                           ;Fuera de los limites. Se termina la recursividad. Todas las posiciones han sido exploradas
     
     inc fTablero
     add si, 8
     call DestaparRecursivo
     sub si, 8               
     dec fTablero
+                   
+                   
+    ;Destapa la casilla inferior izquierda
+    sgteInfIzq: 
+    mov dl, cTablero                     
+    dec dl                               ;Solo hace falta comprobar que se pueda avanzar hacia la izquierda
+    js finRec                            ;Fuera de los limites. Se termina la recursividad. Todas las posiciones han sido exploradas
     
+    dec cTablero
+    inc fTablero
+    add si, 7
+    call DestaparRecursivo
+    sub si, 7 
+    dec fTablero
+    inc cTablero
+                  
     jmp finRec
      
      
