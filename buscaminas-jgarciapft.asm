@@ -826,9 +826,29 @@ code segment
     pop ax
     ret
     
-  CalculaIndiceLineal ENDP  
-
+  CalculaIndiceLineal ENDP
   
+
+;************************* PROCEDIMIENTOS AUXILIARES ***************************
+  
+  ;F: Calcula las coordenadas de tablero que corresponden a un dado indice lineal
+  ;E: BX = Indice lineal de la casilla
+  ;S: 'cTablero' = columna de tablero correspondiente al indice lineal
+  ;   'fTablero' = fila de tablero correspondiente al indice lineal
+  PROC CalculaColumYFila 
+    push ax                         ;Para almacenar el resultado de la division
+    push cx                         ;Para almacenar el divisor (8)
+    
+    mov ax, bx                      ;Inicializa AX con el indice lineal (BX)
+    mov cl, 8                       ;Inicializa el divisor (8 bits para que todo el resultado se almacene en AX)
+    div cl                          ;Dividiendo entre 8 (CL) AL representara la fila y AH la columna
+    mov cTablero, ah                    
+    mov fTablero, al      
+    
+    pop cx      
+    pop ax
+    ret
+  CalculaColumYFila ENDP  
   
     
 ;**********************************   PROCEDIMIENTOS RELACIONADOS CON LA LOGICA DEL JUEGO  *******************************    
@@ -868,7 +888,132 @@ code segment
   ;F: Inicializa la variable MTablero generando posiciones aleatorias para la localizacion de minas
   ;   En base a las minas colocadas se calculan los contadores alrededor de cada mina
   InicializarTablero PROC
+    push ax                                  ;Para comprobar los bordes del tablero
+    push bx                                  ;Para acceder a MTablero
+    push cx                                  ;Para almacenar el numero de minas
+    push si                                  ;Para la direccion de 'vectorMinas'
     
+    mov cl, numMinas                         ;Inicializa 'CX' con el numero de minas = cantidad de numeros aleatorios diferentes
+    xor ch, ch
+    lea si, vectorMinas
+    call VectorAleatDist                     ;Genera las posiciones de las minas
+    
+    mov cl, numMinas                         ;Reinicializacion del valor de CX. El procedimiento 'VectorAleatDist' lo ha modificado. CH ya es 0
+    bInsMinas:                               ;Actualiza el tablero por cada mina insertada
+        mov bx, cx                           ;Guarda el valor del contador de iteraciones para rectificarlo y poder acceder a toda posicion de 'vectorMinas'
+        mov bl, vectorMinas[bx-1]            ;Guarda la posicion de la mina. No hace falta poner a 0 'BH' porque ya estaba a 0 'CH'
+        mov MTablero[bx], -1                 ;Inserta la mina guardada en la posicion correspondiente de tablero
+        call CalculaColumYFila               ;Calcula 'cTablero' y 'fTablero' a partir del indice lineal (almacenado en BX)
+                                             
+        ;ACTUALIZA LAS CASILLAS ADYACENTES
+        
+        ;Casilla izquierda
+        mov al, cTablero                     
+        dec al
+        js sgteActSup                        ;Fuera de los limites. Descartadas las posiciones izquierdas. Siguiente la posicion superior 
+        
+        cmp MTablero[bx-1], -1               ;Comprueba si la casilla tambien es una mina
+        je sgteActSupIzq                        ;La hay. Pasa a la siguiente
+        
+        ;No hay mina
+        inc MTablero[bx-1]                   ;Incrementa la posicion correspondiente al tablero para indicar que hay una mina mas a su alrededor
+        
+                     
+        ;Casilla superior izquierda
+        sgteActSupIzq:
+        mov al, fTablero                     ;Solo es necesario comprobar que se pueda subir una posicion
+        dec al
+        js  sgteActDer                       ;Fuera de los limites. Descartadas las posiciones superiores. Siguiente la posicion derecha
+        
+        cmp MTablero[bx-9], -1               
+        je sgteActSup                           
+        
+        inc MTablero[bx-9] 
+          
+          
+        ;Casilla superior
+        sgteActSup:
+        mov al, fTablero                     
+        dec al
+        js sgteActDer                        ;Fuera de los limites. Descartadas las posiciones superiores. Siguiente la posicion derecha
+        
+        cmp MTablero[bx-8], -1
+        je sgteActSupDer
+        
+        inc MTablero[bx-8]
+        
+        
+        ;Casilla superior derecha
+        sgteActSupDer:  
+        mov al, cTablero                     
+        inc al
+        cmp al, 7                            ;Solo es necesario comprobar que se pueda desplazarte una posicion a la derecha
+        jg sgteActInf                        ;Fuera de los limites. Descartadas las posiciones derechas. Siguiente la posicion inferior
+        
+        cmp MTablero[bx-7], -1
+        je sgteActDer
+        
+        inc MTablero[bx-7]  
+                     
+                     
+        ;Casilla derecha
+        sgteActDer:
+        mov al, cTablero
+        inc al
+        cmp al, 7
+        jg sgteActInf                        ;Fuera de los limites. Descartadas las posiciones derechas. Siguiente la posicion inferior
+        
+        cmp MTablero[bx+1], -1
+        je sgteActInfDer
+        
+        inc MTablero[bx+1] 
+        
+        
+        ;Casilla inferior derecha
+        sgteActInfDer:
+        mov al, fTablero                     
+        inc al
+        cmp al, 7                            ;Solo es necesario comprobar que se pueda bajar una posicion
+        jg finBInsMinas                      ;Fuera de los limites. Descartadas todas las posiciones inferiores. Se termina la iteracion. Todas las posiciones han sido exploradas
+        
+        cmp MTablero[bx+9], -1
+        je sgteActInf
+        
+        inc MTablero[bx+9]
+        
+        
+        ;Casilla inferior
+        sgteActInf:
+        mov al, fTablero
+        inc al
+        cmp al, 7
+        jg finBInsMinas                      ;Fuera de los limites. Descartadas todas las posiciones inferiores. Se termina la iteracion. Todas las posiciones han sudo exploradas
+        
+        cmp MTablero[bx+8], -1
+        je finBInsMinas
+        
+        inc MTablero[bx+8]
+         
+         
+        ;Casilla inferior izquierda
+        sgteActInfIzq:                       
+        mov al, cTablero                     ;Solo es necesario comprobar que se pueda desplazar una posicion inferior
+        dec al                               
+        js finBInsMinas                      ;Fuera de los limites. Se termina la iteracion. Todas las posiciones han sido exploradas
+        
+        cmp MTablero[bx+7], -1
+        je sgteActSupIzq
+        
+        inc MTablero[bx+7]
+                                 
+          
+        finBInsMinas:
+            loop bInsMinas
+    
+    pop si
+    pop cx
+    pop bx
+    pop ax 
     ret
   InicializarTablero ENDP    
 
@@ -1153,7 +1298,6 @@ code segment
     ret
   CompruebaFinPartidaGanada ENDP
   
-   
    
 ;********************************* PRINCIPAL ***********************************   
 
