@@ -876,8 +876,52 @@ code segment
   ;F: Comprueba si una celda (SI) esta bloqueada o no y la bloquea o desbloquea incluida la salida por pantalla 
   ;E: SI posicion lineal para bloquear/desbloquear
   PosibleBloqueo PROC                                                                         
+    push ax                              ;Para almacenar el caracter a imprimir
+    push bx                              ;Para el codigo de color
 
-    ret
+    cmp Destapado[si], 1                 ;Comprueba que la casilla no haya sido destapada
+    je  finBloq                             ;Si lo esta se termina el procedimiento
+    cmp Bloqueado[si], 1                 ;No esta destapada. Comprueba su estado de bloqueo
+    je  desbloquear
+    
+    ;No esta bloqueada. Se bloquea
+    inc Bloqueado[si]                    ;Actualiza el vector que almacena el estado de bloqueo de cada casilla
+    inc casillasBloq                     ;Incrementa el contador de casillas bloqueadas
+        
+    cmp MTablero[si], -1                 ;Comprueba si a demas hay mina en la casilla recien bloqueada       
+    jne noIncMinasBloq                      ;No la hay. No se incrementa el contador 'minasBloq'
+        
+    inc minasBloq                        ;Si la hay. Se incrementa el contador 'minasBloq'
+    
+    noIncMinasBloq:
+        mov al, carBloq                  ;Caracter de bloqueo
+        mov bl, COLORBLOQUEADO           ;Color de bloqueo
+        jmp imprimirBloq
+    
+    ;Esta bloqueada. Se desbloquea
+    desbloquear:
+        dec Bloqueado[si]                ;Actualiza el vector que almacena el estado de bloqueo de cada casilla
+        dec casillasBloq                 ;Decrementa el contador de casillas bloqueadas
+        
+        cmp MTablero[si], -1             ;Comprueba si a demas hay mina en la casilla recien desbloqueada
+        jne noDecMinasBloq                  ;No la hay. No se decrementa el contador de minas bloqueadas
+        
+        dec minasBloq                    ;Si la hay. Se decrementa el contador de minas bloqueadas
+        
+        noDecMinasBloq:
+        mov al, carEspa                  ;Caracter para borrar el caracter de bloqueo
+        xor bl, bl                       ;Color para dejar la casilla en negro
+    
+    imprimirBloq:                        ;Imprime el caracter de bloqueo/espacio en funcion del estado anterior de bloqueo
+        call TableroAPantalla
+        call ColocarCursor     
+        call ImprimeCarColor
+        call ImprimirBloqueadas          ;Actualiza el contador de casillas bloqueadas en pantalla 
+    
+    finBloq:
+        pop bx
+        pop ax
+        ret
   PosibleBloqueo ENDP
   
   
