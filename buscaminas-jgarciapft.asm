@@ -842,8 +842,8 @@ code segment
     mov ax, bx                      ;Inicializa AX con el indice lineal (BX)
     mov cl, 8                       ;Inicializa el divisor (8 bits para que todo el resultado se almacene en AX)
     div cl                          ;Dividiendo entre 8 (CL) AL representara la fila y AH la columna
-    mov colum, ah                    
-    mov fila, al      
+    mov cTablero, ah                    
+    mov fTablero, al      
     
     pop cx      
     pop ax
