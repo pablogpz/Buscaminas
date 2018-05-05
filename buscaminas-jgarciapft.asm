@@ -990,7 +990,7 @@ code segment
         jg finBInsMinas                      ;Fuera de los limites. Descartadas todas las posiciones inferiores. Se termina la iteracion. Todas las posiciones han sudo exploradas
         
         cmp MTablero[bx+8], -1
-        je finBInsMinas
+        je sgteActInfIzq
         
         inc MTablero[bx+8]
          
@@ -1002,7 +1002,7 @@ code segment
         js finBInsMinas                      ;Fuera de los limites. Se termina la iteracion. Todas las posiciones han sido exploradas
         
         cmp MTablero[bx+7], -1
-        je sgteActSupIzq
+        je finBInsMinas
         
         inc MTablero[bx+7]
                                  
