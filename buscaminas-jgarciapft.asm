@@ -868,7 +868,18 @@ code segment
   ;F: Inicializa la variable MTablero generando posiciones aleatorias para la localizacion de minas
   ;   En base a las minas colocadas se calculan los contadores alrededor de cada mina
   InicializarTablero PROC
-
+    push cx
+    push si
+    
+    mov cl, numMinas
+    xor ch, ch
+    lea si, vectorMinas
+    call VectorAleatDist  
+    
+    ;Insertar minas en el tablero y actualizarlo
+    
+    pop si
+    pop cx
     ret
   InicializarTablero ENDP    
 
