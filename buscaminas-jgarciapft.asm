@@ -868,29 +868,46 @@ code segment
   ;F: Inicializa la variable MTablero generando posiciones aleatorias para la localizacion de minas
   ;   En base a las minas colocadas se calculan los contadores alrededor de cada mina
   InicializarTablero PROC
-    push bx
-    push cx
-    push si
+    push ax                                  ;Para comprobar los bordes del tablero
+    push bx                                  ;Para acceder a MTablero
+    push cx                                  ;Para almacenar el numero de minas
+    push si                                  ;Para la direccion de 'vectorMinas'
     
-    mov cl, numMinas
+    mov cl, numMinas                         ;Inicializa 'CX' con el numero de minas = cantidad de numeros aleatorios diferentes
     xor ch, ch
     lea si, vectorMinas
-    call VectorAleatDist  
+    call VectorAleatDist                     ;Genera las posiciones de las minas
     
-    bInsMinas:                          ;TODO: Evaluar si esta es la mejor manera de manejar el bucle
-        mov bx, cx
-        dec bx
-        mov si, bx
-        mov bl, vectorMinas[si]         ;No hace falta poner a cero 'BH'
-        mov MTablero[di], -1
+    bInsMinas:                               ;Actualiza el tablero por cada mina insertada
+        mov bx, cx                           ;Guarda el valor del contador de iteraciones para rectificarlo y poder acceder a toda posicion de 'vectorMinas'
+        mov bl, vectorMinas[bx-1]            ;Guarda la posicion de la mina. No hace falta poner a 0 'BH' porque ya estaba a 0 'CH'
+        mov MTablero[bx], -1                 ;Inserta la mina guardada en la posicion correspondiente de tablero
+        ;call CalculaColumYFila              ;Calcula 'cTablero' y 'fTablero' a partir del indice lineal (almacenado en BX)
+                                             ;TODO: Implementar 'CalculaColumYFila'
+        ;ACTUALIZA LAS CASILLAS ADYACENTES
         
-        ;TODO: Actualizar el tablero
-    
-        loop bInsMinas
+        ;Casilla izquierda
+        mov al, cTablero                     ;Comprueba los limites del tablero
+        dec al
+        js sgteActSup                        ;Fuera de los limites. Descartadas las posiciones izquierdas. Siguiente la superior 
+        
+        dec bx
+        cmp MTablero[bx], -1                 ;Comprueba si la casilla tambien es una mina
+        je sgteActSupIzq                        ;Lo es. Pasa a la siguiente
+        
+        inc MTablero[bx]                     ;Incrementa la posicion correspondiente al tablero para indicar que hay una mina mas a su alrededor
+        inc bx                               ;Recupera el indice lineal
+        
+        ;TODO: Implementar el resto de casillas
+        ;Casilla superior izquierda
+        
+        finBInsMinas:
+            loop bInsMinas
     
     pop si
     pop cx
-    pop bx 
+    pop bx
+    pop ax 
     ret
   InicializarTablero ENDP    
 
