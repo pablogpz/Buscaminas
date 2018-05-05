@@ -826,9 +826,29 @@ code segment
     pop ax
     ret
     
-  CalculaIndiceLineal ENDP  
-
+  CalculaIndiceLineal ENDP
   
+
+;************************* PROCEDIMIENTOS AUXILIARES ***************************
+  
+  ;F: Calcula las coordenadas de tablero que corresponden a un dado indice lineal
+  ;E: BX = Indice lineal de la casilla
+  ;S: 'cTablero' = columna de tablero correspondiente al indice lineal
+  ;   'fTablero' = fila de tablero correspondiente al indice lineal
+  PROC CalculaColumYFila 
+    push ax                         ;Para almacenar el resultado de la division
+    push cx                         ;Para almacenar el divisor (8)
+    
+    mov ax, bx                      ;Inicializa AX con el indice lineal (BX)
+    mov cl, 8                       ;Inicializa el divisor (8 bits para que todo el resultado se almacene en AX)
+    div cl                          ;Dividiendo entre 8 (CL) AL representara la fila y AH la columna
+    mov colum, ah                    
+    mov fila, al      
+    
+    pop cx      
+    pop ax
+    ret
+  CalculaColumYFila ENDP  
   
     
 ;**********************************   PROCEDIMIENTOS RELACIONADOS CON LA LOGICA DEL JUEGO  *******************************    
@@ -883,7 +903,7 @@ code segment
         mov bx, cx                           ;Guarda el valor del contador de iteraciones para rectificarlo y poder acceder a toda posicion de 'vectorMinas'
         mov bl, vectorMinas[bx-1]            ;Guarda la posicion de la mina. No hace falta poner a 0 'BH' porque ya estaba a 0 'CH'
         mov MTablero[bx], -1                 ;Inserta la mina guardada en la posicion correspondiente de tablero
-        ;call CalculaColumYFila              ;Calcula 'cTablero' y 'fTablero' a partir del indice lineal (almacenado en BX)
+        call CalculaColumYFila               ;Calcula 'cTablero' y 'fTablero' a partir del indice lineal (almacenado en BX)
                                              ;TODO: Implementar 'CalculaColumYFila'
         ;ACTUALIZA LAS CASILLAS ADYACENTES
         
@@ -1044,7 +1064,6 @@ code segment
     ret
   CompruebaFinPartidaGanada ENDP
   
-   
    
 ;********************************* PRINCIPAL ***********************************   
 
