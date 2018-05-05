@@ -868,7 +868,7 @@ code segment
   ;F: Inicializa la variable MTablero generando posiciones aleatorias para la localizacion de minas
   ;   En base a las minas colocadas se calculan los contadores alrededor de cada mina
   InicializarTablero PROC
-
+    
     ret
   InicializarTablero ENDP    
 
@@ -886,8 +886,42 @@ code segment
   ;E: SI es el indice de la casilla a destapar
   ;S: hayMina = 1 si hay mina; hayMina = 0 si no la hay
   DestaparCasilla PROC
-
-    ret
+    push ax                             ;Para el caracter a imprimir
+    push bx                             ;Para el codigo de color
+    push dx                             ;Para cargar la direccion de la cadena de escritura en pantalla 'cadenaEsc' y para manipular la posicion del tablero 
+    
+    ;Comprueba que la casilla no este bloqueada
+    cmp Bloqueado[si], 1
+    je finNoMina                        ;Esta bloqueada. No se hace nada
+    
+    ;No esta bloqueda la casilla. Comprueba si hay mina
+    cmp MTablero[si], -1
+    je finHayMina                       ;Hay mina
+     
+    ;No hay mina. Se destapa y si no hay ninguna alrededor se destapan tambien las adyacentes y viceversa 
+    call DestaparRecursivo                         
+    jmp finNoMina  
+                
+    finHayMina:                         
+        ;Asigna los parametros para llamar a 'ImprimeCarColor'
+        mov al, carMina
+        xor bl, bl
+        ;Coloca el cursor para imprimir la mina en la casilla destapada (indicada por la posicion del raton)
+        call TableroAPantalla
+        call ColocarCursor
+        call ImprimeCarColor
+        
+        mov hayMina, 1                  ;Actualiza la bandera de condicion de final de partida
+        jmp final           
+                 
+    finNoMina:
+        mov hayMina, 0                  ;Actualiza la bandera de condicion de final de partida
+        
+    final:                              ;Libera la memoria reservada en pila
+        pop dx
+        pop bx
+        pop ax
+        ret
   DestaparCasilla ENDP
 
   
@@ -896,8 +930,164 @@ code segment
   ;E: destapadas
   ;S: destapadas
   DestaparRecursivo PROC
+    cmp Destapado[si], 1                 ;Comprueba que la casilla no este destapada
+    je finRec                            ;Lo esta. Finaliza la recursion
+    
+    cmp Bloqueado[si], 1                 ;Comprueba que la casilla no este bloqueada
+    je finRec                            ;Lo esta. Finaliza la recursion
+    
+    ;Se puede destapar la casilla. No esta ni destapada ni bloqueada
+    ;Codigo comun a si hay mina alrededor o no
+    mov bl, COLORDESTAPADO               ;Asigna el codigo de color
+    ;Coloca el cursor para imprimir el numero de minas adyacentes en la casilla destapda (indicada por la posicion del tablero)  
+    call TableroAPantalla
+    call ColocarCursor
 
-    ret
+    ;Actualiza el contador y el vector de casillas destapadas
+    inc Destapado[si]               
+    inc destapadas                   
+    
+    cmp MTablero[si], 0                  ;Comprueba si hay mina alrededor
+    jg imprimeNumero
+    
+    ;No hay mina alrededor. Se imprime un caracter en blanco y se destapan las adyacentes
+    mov al, ' '
+    call ImprimeCarColor
+    
+    ;Se llama recursivamente al procedimiento para DESTAPAR LAS CASILLAS ADYACENTES
+    ;Pero primero hay que comprobar que casillas son potencialmente destapables comparando con los limites del tablero
+    
+    ;Destapa la casilla izquierda
+    mov dl, cTablero
+    dec dl
+    js sgteSup                           ;Fuera de los limites. Descartadas las posiciones izquierdas. Siguiente la posicion superior                   
+    
+    ;Actualiza las variables para la llamada recursiva
+    dec cTablero
+    dec si
+    call DestaparRecursivo
+    ;Deshace los cambios para volver a la posicion desde la que se llamo                  
+    inc si     
+    inc cTablero
+               
+                 
+    ;Destapa la casilla superior izquierda
+    sgteIzqSup:
+    mov dl, fTablero
+    dec dl                               ;Solo hace falta comprobar que se pueda subir
+    js sgteDer                           ;Fuera de los limites. Descartadas las posiciones superiores. Siguiente la posicion derecha
+    
+    dec cTablero
+    dec fTablero
+    sub si, 9
+    call DestaparRecursivo
+    add si, 9
+    inc fTablero
+    inc cTablero               
+               
+               
+    ;Destapa la casilla superior
+    sgteSup:
+    mov dl, fTablero
+    dec dl                               
+    js sgteDer                          ;Fuera de los limites. Descartadas las posiciones superiores. Siguiente la posicion derecha
+    
+    dec fTablero
+    sub si, 8
+    call DestaparRecursivo
+    add si, 8               
+    inc fTablero
+      
+      
+    ;Destapa la casilla superior derecha
+    sgteSupDer:
+    mov dl, cTablero
+    inc dl
+    cmp dl, 7                           ;Solo hace falta comprobar que se pueda avanzar hacia la derecha
+    jg sgteInf                          ;Fuera de los limites. Se descartan las posiciones derechas. Siguiente la posicion inferior
+    
+    inc cTablero
+    dec fTablero
+    sub si, 7
+    call DestaparRecursivo
+    add si, 7
+    inc fTablero
+    dec cTablero               
+         
+         
+    ;Destapa la casilla derecha
+    sgteDer:
+    mov dl, cTablero
+    inc dl
+    cmp dl, 7
+    jg sgteInf                          ;Fuera de los limites. Se descartan las posiciones derechas. Siguiente la posicion inferior
+    
+    inc cTablero
+    inc si                           
+    call DestaparRecursivo
+    dec si
+    dec cTablero
+      
+      
+    ;Destapa la casilla inferior derecha
+    sgteInfDer:
+    mov dl, fTablero
+    inc dl
+    cmp dl, 7                           ;Solo hace falta comprobar que se pueda bajar
+    jg finRec                           ;Fuera de los limites. Se termina la recursividad. Todas las posiciones han sido exploradas
+    
+    inc cTablero
+    inc fTablero
+    add si, 9                           
+    call DestaparRecursivo
+    sub si, 9 
+    dec fTablero
+    dec cTablero  
+       
+       
+    ;Destapa la casilla inferior
+    sgteInf:
+    mov dl, fTablero
+    inc dl
+    cmp dl, 7
+    jg finRec                           ;Fuera de los limites. Se termina la recursividad. Todas las posiciones han sido exploradas
+    
+    inc fTablero
+    add si, 8
+    call DestaparRecursivo
+    sub si, 8               
+    dec fTablero
+                   
+                   
+    ;Destapa la casilla inferior izquierda
+    sgteInfIzq: 
+    mov dl, cTablero                     
+    dec dl                               ;Solo hace falta comprobar que se pueda avanzar hacia la izquierda
+    js finRec                            ;Fuera de los limites. Se termina la recursividad. Todas las posiciones han sido exploradas
+    
+    dec cTablero
+    inc fTablero
+    add si, 7
+    call DestaparRecursivo
+    sub si, 7 
+    dec fTablero
+    inc cTablero
+                  
+    jmp finRec
+     
+     
+    imprimeNumero:                       ;Hay mina alrededor. Se imprime el numero de minas y finaliza la recursion
+        ;Convierte el numero almacenado en el vector MTablero a una cadena para su impresion en el tablero
+        mov al, MTablero[si]
+        xor ah, ah                          
+        lea dx, cadenaEsc
+        call NumeroACadena
+        ;Asigna los parametros para llamar a 'ImprimeCarColor'
+        mov al, cadenaEsc             
+        call ImprimeCarColor
+    
+    finRec:
+        ret
   DestaparRecursivo ENDP
  
  
