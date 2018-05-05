@@ -904,7 +904,7 @@ code segment
         mov bl, vectorMinas[bx-1]            ;Guarda la posicion de la mina. No hace falta poner a 0 'BH' porque ya estaba a 0 'CH'
         mov MTablero[bx], -1                 ;Inserta la mina guardada en la posicion correspondiente de tablero
         call CalculaColumYFila               ;Calcula 'cTablero' y 'fTablero' a partir del indice lineal (almacenado en BX)
-                                             ;TODO: Implementar 'CalculaColumYFila'
+                                             
         ;ACTUALIZA LAS CASILLAS ADYACENTES
         
         ;Casilla izquierda
@@ -913,25 +913,12 @@ code segment
         js sgteActSup                        ;Fuera de los limites. Descartadas las posiciones izquierdas. Siguiente la posicion superior 
         
         cmp MTablero[bx-1], -1               ;Comprueba si la casilla tambien es una mina
-        je sgteActInfIzq                        ;La hay. Pasa a la siguiente
+        je sgteActSupIzq                        ;La hay. Pasa a la siguiente
         
         ;No hay mina
         inc MTablero[bx-1]                   ;Incrementa la posicion correspondiente al tablero para indicar que hay una mina mas a su alrededor
         
-        
-        ;Casilla inferior izquierda
-        sgteActInfIzq:                       
-        mov al, fTablero                     
-        inc al                               ;Solo es necesario comprobar que se pueda desplazar una posicion inferior
-        cmp al, 7                            ;Fuera de los limites. Se termina la iteracion. Todas las posiciones han sido exploradas
-        jg sgteActSup
-        
-        cmp MTablero[bx+7], -1
-        je sgteActSupIzq
-        
-        inc MTablero[bx+7]
-                                 
-                                 
+                     
         ;Casilla superior izquierda
         sgteActSupIzq:
         mov al, fTablero                     ;Solo es necesario comprobar que se pueda subir una posicion
@@ -967,7 +954,8 @@ code segment
         je sgteActDer
         
         inc MTablero[bx-7]  
-        
+                     
+                     
         ;Casilla derecha
         sgteActDer:
         mov al, cTablero
@@ -1005,7 +993,19 @@ code segment
         je finBInsMinas
         
         inc MTablero[bx+8]
+         
+         
+        ;Casilla inferior izquierda
+        sgteActInfIzq:                       
+        mov al, cTablero                     ;Solo es necesario comprobar que se pueda desplazar una posicion inferior
+        dec al                               
+        js finBInsMinas                      ;Fuera de los limites. Se termina la iteracion. Todas las posiciones han sido exploradas
         
+        cmp MTablero[bx+7], -1
+        je sgteActSupIzq
+        
+        inc MTablero[bx+7]
+                                 
           
         finBInsMinas:
             loop bInsMinas
