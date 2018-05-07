@@ -162,7 +162,19 @@ data segment
   cadenaEsc db 3 DUP('$')
   
   ;Almacena la respuesta del usuario sobre comenzar una nueva partida
-  NPartida db ?
+  NPartida db ? 
+  
+  ;********** AMPLIACIONES **********
+  
+  ;Control de tiempo de partida
+  msjTiempo1 db "Tiempo transcurrido : $"
+  msjTiempo2 db " min$"
+  
+  hInicio db ?                    ;Almacena la hora del momento en el que se comienza una nueva partida
+  tInicio dw ?                    ;Almacena el tiempo en minutos al iniciar una nueva partida partida          
+  
+  hFin db ?                       ;Almacena la hora del momento en el que se termina la partida actual 
+  tFin dw ?                       ;Almacena el tiempo en minutos al finalizar la partida actual
  
 data ends
    
@@ -969,7 +981,7 @@ code segment
         
         ;Casilla inferior derecha
         sgteActInfDer:
-        mov al, fTablero                     
+        mov al, fTablero                                             
         inc al
         cmp al, 7                            ;Solo es necesario comprobar que se pueda bajar una posicion
         jg finBInsMinas                      ;Fuera de los limites. Descartadas todas las posiciones inferiores. Se termina la iteracion. Todas las posiciones han sido exploradas
@@ -1315,7 +1327,7 @@ start:
         
     inicializarPartida:
         call InicializarEntorno         ;Inicializa el entorno grafico y pide al usuario el tablero a cargar. Se ejecuta siempre que se inicie una nueva partida
-    
+
     bLogicaJuego:                       ;Bucle que maneja la logica del juego en cada iteracion
         call EsperarClic                
         call PosicionRatonValida        ;Evalua la posicion del puntero del raton
