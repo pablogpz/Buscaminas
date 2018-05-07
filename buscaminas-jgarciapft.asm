@@ -164,17 +164,16 @@ data segment
   ;Almacena la respuesta del usuario sobre comenzar una nueva partida
   NPartida db ? 
   
-  ;********** AMPLIACIONES **********
+;**************************************************** AMPLIACIONES *******************************************************
   
   ;Control de tiempo de partida
+  YMSJ_TIEMPO EQU 22
+                     
   msjTiempo1 db "Tiempo transcurrido : $"
-  msjTiempo2 db " min$"
+  msjTiempo2 db " min$", 10, 13
   
   hInicio db ?                    ;Almacena la hora del momento en el que se comienza una nueva partida
-  tInicio dw ?                    ;Almacena el tiempo en minutos al iniciar una nueva partida partida          
-  
-  hFin db ?                       ;Almacena la hora del momento en el que se termina la partida actual 
-  tFin dw ?                       ;Almacena el tiempo en minutos al finalizar la partida actual
+  tInicio db ?                    ;Almacena el tiempo en minutos al iniciar una nueva partida partida          
  
 data ends
    
@@ -839,7 +838,7 @@ code segment
   CalculaIndiceLineal ENDP
   
 
-;************************* PROCEDIMIENTOS AUXILIARES ***************************
+;********************************************** PROCEDIMIENTOS AUXILIARES ************************************************
   
   ;F: Calcula las coordenadas de tablero que corresponden a un dado indice lineal
   ;E: BX = Indice lineal de la casilla
@@ -860,6 +859,18 @@ code segment
     ret
   CalculaColumYFila ENDP  
   
+ 
+;**************************************************** AMPLIACIONES *******************************************************
+ 
+  PROC ObtenerHora
+    push ax
+    
+    mov ah, 2Ch
+    int 21h
+    
+    pop ax
+    ret
+  ObtenerHora ENDP
     
 ;**********************************   PROCEDIMIENTOS RELACIONADOS CON LA LOGICA DEL JUEGO  *******************************    
 
@@ -1327,7 +1338,12 @@ start:
         
     inicializarPartida:
         call InicializarEntorno         ;Inicializa el entorno grafico y pide al usuario el tablero a cargar. Se ejecuta siempre que se inicie una nueva partida
-
+    
+    ;Obtiene la hora de inicio de partida
+    call ObtenerHora
+    mov hInicio, ch
+    mov tInicio, cl
+    
     bLogicaJuego:                       ;Bucle que maneja la logica del juego en cada iteracion
         call EsperarClic                
         call PosicionRatonValida        ;Evalua la posicion del puntero del raton
@@ -1380,10 +1396,35 @@ start:
         cmp fin, 0                      ;Si fin=0 se pasa al siguiente 'tick'
         je bLogicaJuego
         
-        ;Se ha terminado la partida     
-        call ContinuarOnoJuego          ;Comprueba las condiciones de fin y muestra los mensajes correspondientes                                                    
+        ;Se ha terminado la partida
         
-        cmp NPartida, 0                 ;Maneja la finalizacion del programa. Si no se termina, se recarga el juego
+        ;Obtiene la hora de final de partida y calcula el tiempo total transcurrido
+        call ObtenerHora
+        ;Imprime la primera parte del contador de tiempo de partida
+        mov colum, XMENSAJES
+        mov fila, YMSJ_TIEMPO
+        call ColocarCursor
+        lea dx, msjTiempo1
+        call Imprimir
+        ;Calcula la diferencia de horas y convierte el tiempo transcurrido a minutos
+        sub ch, hInicio
+        xor ah, ah
+        mov al, ch
+        mov bx, 60
+        mul bx
+        
+        sub cl, tInicio
+        xor ch, ch
+        add ax, cx
+        
+        lea dx, cadenaEsc
+        call NumeroACadena              ;Convierte los minutos a cadena
+        call Imprimir                   ;Imprime por pantalla el tiempo transcurrido
+        lea dx, msjTiempo2
+        call Imprimir                   
+             
+        call ContinuarOnoJuego          ;Comprueba las condiciones de fin y muestra los mensajes correspondientes                                                    
+        cmp NPartida, 0                 ;Maneja la finalizacion del programa. Si no se termina se recarga el juego
         jne recargarJuego               
         
      ;Fin del programa
