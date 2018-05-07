@@ -829,7 +829,7 @@ code segment
   CalculaIndiceLineal ENDP
   
 
-;************************* PROCEDIMIENTOS AUXILIARES ***************************
+;********************************************** PROCEDIMIENTOS AUXILIARES ************************************************
   
   ;F: Calcula las coordenadas de tablero que corresponden a un dado indice lineal
   ;E: BX = Indice lineal de la casilla
