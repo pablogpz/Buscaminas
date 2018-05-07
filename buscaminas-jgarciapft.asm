@@ -72,7 +72,7 @@ data segment
   EsperaClic db "Esperando clic de raton$"    
   
   ;Mensaje para borrar/sobreescribir el mensaje de "Esperando clic de raton" y el numero de casillas bloqueadas
-  CadBorrar db "                        $" 
+  CadBorrar db "                       $" 
     
   ;Mensaje que precede al numero de casillas que el usuario ha bloqueado
   mensajeMinas db "Bloqueadas:$" 
@@ -162,7 +162,7 @@ data segment
   cadenaEsc db 3 DUP('$')
   
   ;Almacena la respuesta del usuario sobre comenzar una nueva partida
-  NPartida db 0
+  NPartida db ?
  
 data ends
    
@@ -382,7 +382,6 @@ code segment
     and bx,3
     jz bucleEPulsar ;Si no se pulsa ningun boton se queda en bucle
     
-    ;@PREGUNTA: Que es el 'ajuste modo texto'
     shr dx, 3  ;Ajuste modo texto
     shr cx, 3
     mov dh, cl
@@ -577,8 +576,7 @@ code segment
 
     lea dx, CadBorrar
     call Imprimir
-       
-    ;@PREGUNTA: Es redundante la asignacion de 'fila' y 'colum'?   
+        
     mov fila, YBLOQ
     mov colum, XBLOQ + 13
     call ColocarCursor
@@ -1306,6 +1304,8 @@ start:
     mov ax, data
     mov ds, ax
     mov es, ax 
+    
+    mov NPartida, 0                     ;Condicion inicial. Solo se ejecuta una vez, en la primera partida
                                         
     recargarJuego:                      ;Al inicio de cada partida se comprueba las condiciones de recarga de partida indicadas por el usuario
         cmp NPartida, 0
