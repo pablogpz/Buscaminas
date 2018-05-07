@@ -1306,11 +1306,10 @@ start:
     mov ax, data
     mov ds, ax
     mov es, ax 
+    
+    jmp inicializarPartida              ;Solo se ejecuta en la primera partida
                                         
-    recargarJuego:                      ;Al inicio de cada partida se comprueba las condiciones de recarga de partida indicadas por el usuario
-        cmp NPartida, 0
-        je inicializarPartida           ;Primera vez que se ejecuta al programa                  
-         
+    recargarJuego:                      ;Al inicio de cada partida se comprueba las condiciones de recarga de partida indicadas por el usuario                          
         call ResetVariables             ;Se ha elegido volver a jugar una nueva partida, por lo que hay que reinicializar las variables. El PROC InicializarEntorno maneja la inicializacion del tablero bajo estas condiciones
         
     inicializarPartida:
