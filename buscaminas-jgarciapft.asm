@@ -1368,7 +1368,33 @@ start:
         cmp fin, 0                      ;Si fin=0 se pasa al siguiente 'tick'
         je bLogicaJuego
         
-        ;Se ha terminado la partida     
+        ;Se ha terminado la partida
+        
+        ;Muestra todas las minas del tablero
+        ;Comprueba que no se haya abandonado la partida
+        cmp fin, 1
+        je continuar
+        ;Inicializa los registros empleados
+        xor si, si                      ;Indice para 'vectorMinas'
+        xor ah, ah                      ;Caracter mina a imprimir
+        xor bh, bh                      ;Indice lineal de las casillas con mina
+        xor ch, ch                      ;Contador del bucle
+        mov cl, numMinas
+        bDestaparMinas:
+            mov bl, vectorMinas[si]     ;Obtiene los indices lineales de cada casilla que contiene una mina
+            call CalculaColumYFila      ;Obtiene sus coordenadas en 'cTablero, 'fTablero'
+            call TableroAPantalla       ;Obtiene sus coordenadas en 'colum', 'fila'
+            call ColocarCursor          ;Coloca el cursor en la posicion de la casilla que contiene la mina
+            
+            ;Sobreescribe el contenido impreso por la mina
+            mov al, carMina
+            xor bl, bl 
+            call ImprimeCarColor
+                 
+            inc si
+            loop bDestaparMinas
+        
+        continuar:     
         call ContinuarOnoJuego          ;Comprueba las condiciones de fin y muestra los mensajes correspondientes                                                    
         
         cmp NPartida, 0                 ;Maneja la finalizacion del programa. Si no se termina, se recarga el juego
