@@ -1414,17 +1414,10 @@ start:
         mul bx
         ;Calcula la diferencia de minutos
         xor ch, ch
-        sub cl, tInicio                 
-        js esMenor                      ;Si es mayor se suman los minutos a las horas transcurridas. Si es menor se restan
+        mov bl, tInicio                 ;BH ya es 0 por 'mov bx, 60'
+        sub cx, bx                      ;Diferencia de minutos                
+        add ax, cx                      ;Si es mayor se suman los minutos a las horas transcurridas. Si es menor se restan              
         
-        add ax, cx                      ;Tiempo transcurrido en minutos
-        jmp continuar
-        
-        esMenor:
-            neg cl
-            sub ax, cx                  ;Tiempo transcurrido en minutos
-            
-        continuar:              
         lea dx, cadenaEsc
         call NumeroACadena              ;Convierte los minutos a cadena
         call Imprimir                   ;Imprime por pantalla el tiempo transcurrido
