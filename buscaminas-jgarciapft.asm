@@ -839,6 +839,7 @@ code segment
     push ax                         ;Para almacenar el resultado de la division
     push cx                         ;Para almacenar el divisor (8)
     
+    xor ah, ah
     mov al, bl                      ;Inicializa AL con el indice lineal (BL)
     mov cl, 8                       ;Inicializa el divisor (8 bits para que todo el resultado se almacene en AX)
     div cl                          ;Dividiendo entre 8 (CL) AL representara la fila y AH la columna
