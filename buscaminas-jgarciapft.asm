@@ -1377,7 +1377,6 @@ start:
         ;Inicializa los registros empleados
         xor si, si                      ;Indice para 'vectorMinas'
         xor ah, ah                      ;Caracter mina a imprimir
-        xor bh, bh                      ;Indice lineal de las casillas con mina
         xor ch, ch                      ;Contador del bucle
         mov cl, numMinas
         bDestaparMinas:
