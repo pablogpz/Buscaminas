@@ -168,6 +168,8 @@ data segment
   
   ;Control de tiempo de partida
   YMSJ_TIEMPO EQU 22
+  XTIEMPO EQU 35
+  YTIEMPO EQU 12
                      
   msjTiempo1 db "Tiempo transcurrido : $"
   msjTiempo2 db " min$", 10, 13
@@ -1401,8 +1403,8 @@ start:
         ;Obtiene la hora de final de partida y calcula el tiempo total transcurrido
         call ObtenerHora
         ;Imprime la primera parte del contador de tiempo de partida
-        mov colum, XMENSAJES
-        mov fila, YMSJ_TIEMPO
+        mov colum, XTIEMPO
+        mov fila, YTIEMPO
         call ColocarCursor
         lea dx, msjTiempo1
         call Imprimir
